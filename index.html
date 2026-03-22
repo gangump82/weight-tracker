@@ -22,15 +22,145 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
+        
+        /* 打卡火苗动画 */
+        .flame-icon {
+            animation: flame 1s ease-in-out infinite;
+        }
+        @keyframes flame {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* 数字跳动动画 */
+        .number-pop {
+            animation: numberPop 0.5s ease-out;
+        }
+        @keyframes numberPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* 成就解锁动画 */
+        .achievement-unlock {
+            animation: achievementUnlock 0.6s ease-out;
+        }
+        @keyframes achievementUnlock {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+        
+        /* 模态框动画 */
+        .modal-content {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        @keyframes modalSlideIn {
+            from { transform: scale(0.9) translateY(-20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        
+        /* 打卡按钮脉冲 */
+        .checkin-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        /* 进度条动画 */
+        .progress-bar-animate {
+            transition: width 1s ease-out;
+        }
+        
+        /* 日历打卡标记 */
+        .calendar-checked {
+            background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+            color: white;
+            border-radius: 50%;
+        }
+        
+        /* 成就徽章发光 */
+        .badge-glow {
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+        
+        /* 激励语录打字机效果 */
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid #667eea;
+            animation: typing 2s steps(30, end), blink-caret 0.75s step-end infinite;
+        }
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #667eea }
+        }
+        
+        /* 星星飘落效果 */
+        .star-fall {
+            position: fixed;
+            pointer-events: none;
+            animation: starFall 1.5s ease-out forwards;
+        }
+        @keyframes starFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* 隐藏滚动条 */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 <body class="font-sans">
     <div class="container mx-auto px-4 py-6 max-w-4xl">
         <!-- 头部 -->
-        <header class="text-center mb-8">
+        <header class="text-center mb-6">
             <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">🧘 减肥记录</h1>
             <p class="text-white/80 text-sm">记录每一天的变化，见证更好的自己</p>
         </header>
+
+        <!-- 打卡区域 -->
+        <div class="card rounded-xl p-4 shadow-lg mb-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <!-- 连续打卡 -->
+                <div class="flex items-center gap-3">
+                    <div class="text-4xl flame-icon">🔥</div>
+                    <div>
+                        <div class="text-3xl font-bold text-orange-500" id="streakDays">0</div>
+                        <div class="text-xs text-gray-500">连续打卡</div>
+                    </div>
+                </div>
+                
+                <!-- 打卡按钮 -->
+                <button id="checkinBtn" onclick="toggleCheckin()" 
+                    class="checkin-pulse bg-gradient-to-r from-red-500 to-orange-500 text-white px-6 py-3 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition transform hover:scale-105 active:scale-95">
+                    📅 今日打卡
+                </button>
+                
+                <!-- 断签提醒 -->
+                <div id="streakWarning" class="hidden text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
+                    ⚠️ 你已经坚持 <span id="streakWarningDays">0</span> 天了，别前功尽弃！
+                </div>
+            </div>
+            
+            <!-- 今日激励语 -->
+            <div id="motivationText" class="mt-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg text-center hidden">
+                <span class="text-gray-700 italic" id="motivationContent"></span>
+            </div>
+        </div>
 
         <!-- 统计卡片 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -49,6 +179,40 @@
             <div class="card rounded-xl p-4 shadow-lg text-center">
                 <div class="text-2xl font-bold text-orange-600" id="bmiValue">--</div>
                 <div class="text-xs text-gray-500 mt-1">BMI 指数</div>
+            </div>
+        </div>
+
+        <!-- 周期统计 -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="card rounded-xl p-4 shadow-lg text-center">
+                <div class="text-xl font-bold text-green-500" id="weekLost">--</div>
+                <div class="text-xs text-gray-500 mt-1">本周减重 (kg)</div>
+            </div>
+            <div class="card rounded-xl p-4 shadow-lg text-center">
+                <div class="text-xl font-bold text-blue-500" id="monthLost">--</div>
+                <div class="text-xs text-gray-500 mt-1">本月减重 (kg)</div>
+            </div>
+            <div class="card rounded-xl p-4 shadow-lg text-center">
+                <div class="text-xl font-bold text-purple-500" id="avgWeeklyLost">--</div>
+                <div class="text-xs text-gray-500 mt-1">周均减重 (kg)</div>
+            </div>
+        </div>
+
+        <!-- 进度可视化 -->
+        <div class="card rounded-xl p-4 shadow-lg mb-6" id="progressSection">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">📊 减重进度</h3>
+            <div class="relative h-6 bg-gray-200 rounded-full overflow-hidden mb-2">
+                <div id="mainProgressBar" class="progress-bar-animate h-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 rounded-full" style="width: 0%"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700">
+                    <span id="progressPercent">0%</span>
+                </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 mb-4">
+                <span>初始: <span id="startWeightDisplay">--</span> kg</span>
+                <span>目标: <span id="goalWeightDisplay">--</span> kg</span>
+            </div>
+            <div id="estimatedDate" class="text-sm text-center text-gray-600 hidden">
+                🎯 预计达成日期: <span id="estimatedDateValue" class="font-semibold text-purple-600">--</span>
             </div>
         </div>
 
@@ -83,6 +247,8 @@
                             添加记录
                         </button>
                     </form>
+                    <!-- 智能提醒 -->
+                    <div id="smartReminder" class="hidden mt-4 p-3 rounded-lg text-sm text-center"></div>
                 </div>
 
                 <!-- 目标设置 -->
@@ -103,31 +269,51 @@
                             class="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 rounded-lg font-medium hover:from-green-600 hover:to-teal-600 transition transform hover:scale-[1.02] active:scale-[0.98]">
                             保存设置
                         </button>
-                        <div id="goalProgress" class="hidden mt-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-sm text-gray-600">距离目标</span>
-                                <span id="distanceToGoal" class="font-semibold text-purple-600">--</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div id="progressBar" class="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 右侧：历史记录和数据管理 -->
+            <!-- 右侧：历史记录、成就、日历 -->
             <div class="space-y-6">
+                <!-- 打卡日历 -->
+                <div class="card rounded-xl p-6 shadow-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <button onclick="changeMonth(-1)" class="p-2 hover:bg-gray-100 rounded-lg">◀</button>
+                        <h2 class="text-lg font-semibold text-gray-800" id="calendarTitle">打卡日历</h2>
+                        <button onclick="changeMonth(1)" class="p-2 hover:bg-gray-100 rounded-lg">▶</button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-2">
+                        <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                    </div>
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+                </div>
+
+                <!-- 成就墙 -->
+                <div class="card rounded-xl p-6 shadow-lg">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">🏆 成就墙</h2>
+                    <div id="achievementWall" class="grid grid-cols-4 gap-3">
+                        <!-- 成就将通过JS动态生成 -->
+                    </div>
+                </div>
+
                 <!-- 历史记录 -->
                 <div class="card rounded-xl p-6 shadow-lg">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">📋 历史记录</h2>
-                    <div id="historyList" class="space-y-2 max-h-96 overflow-y-auto">
-                        <!-- 记录列表将通过JS动态生成 -->
+                    <div id="historyList" class="space-y-2 max-h-64 overflow-y-auto hide-scrollbar">
                     </div>
                     <div id="emptyState" class="text-center py-8 text-gray-400">
                         <div class="text-4xl mb-2">📝</div>
                         <p>暂无记录，开始记录你的第一条体重吧！</p>
                     </div>
+                </div>
+
+                <!-- 分享海报 -->
+                <div class="card rounded-xl p-6 shadow-lg">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">📢 分享打卡</h2>
+                    <button onclick="generatePoster()" 
+                        class="w-full bg-gradient-to-r from-pink-500 to-orange-500 text-white py-3 rounded-lg font-medium hover:from-pink-600 hover:to-orange-600 transition transform hover:scale-[1.02] active:scale-[0.98]">
+                        🖼️ 生成打卡海报
+                    </button>
                 </div>
 
                 <!-- 数据管理 -->
@@ -159,7 +345,7 @@
 
     <!-- 编辑模态框 -->
     <div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 fade-in">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 modal-content">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">编辑记录</h3>
             <form id="editForm" class="space-y-4">
                 <input type="hidden" id="editId">
@@ -187,14 +373,87 @@
         </div>
     </div>
 
+    <!-- 成就弹窗 -->
+    <div id="achievementModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 w-full max-w-sm mx-4 modal-content text-center">
+            <div id="achievementIcon" class="text-6xl mb-4 achievement-unlock">🏆</div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">🎉 成就解锁！</h3>
+            <p id="achievementName" class="text-lg text-purple-600 font-semibold mb-2">成就名称</p>
+            <p id="achievementDesc" class="text-gray-500 text-sm mb-4">成就描述</p>
+            <button onclick="closeAchievementModal()" 
+                class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition">
+                太棒了！
+            </button>
+        </div>
+    </div>
+
+    <!-- 海报预览模态框 -->
+    <div id="posterModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-4 w-full max-w-md mx-4 modal-content">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">📸 打卡海报</h3>
+            <canvas id="posterCanvas" class="w-full rounded-lg shadow-lg"></canvas>
+            <div class="flex gap-3 mt-4">
+                <button onclick="closePosterModal()" 
+                    class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition">
+                    关闭
+                </button>
+                <button onclick="downloadPoster()" 
+                    class="flex-1 bg-gradient-to-r from-pink-500 to-orange-500 text-white py-3 rounded-lg font-medium hover:from-pink-600 hover:to-orange-600 transition">
+                    💾 保存图片
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 数据存储键
         const STORAGE_KEYS = {
             records: 'weight_tracker_records',
             goal: 'weight_tracker_goal',
-            height: 'weight_tracker_height'
+            height: 'weight_tracker_height',
+            checkins: 'weight_tracker_checkins',
+            achievements: 'weight_tracker_achievements',
+            lastCheckin: 'weight_tracker_last_checkin'
         };
 
+        // 成就定义
+        const ACHIEVEMENTS = {
+            firstRecord: { icon: '🔰', name: '初心者', desc: '首次记录体重', unlocked: false },
+            lost1kg: { icon: '🥉', name: '减重 1kg', desc: '累计减重达到 1kg', unlocked: false },
+            lost5kg: { icon: '🥈', name: '减重 5kg', desc: '累计减重达到 5kg', unlocked: false },
+            lost10kg: { icon: '🥇', name: '减重 10kg', desc: '累计减重达到 10kg', unlocked: false },
+            streak7: { icon: '💪', name: '坚持 7 天', desc: '连续打卡 7 天', unlocked: false },
+            streak30: { icon: '🔥', name: '坚持 30 天', desc: '连续打卡 30 天', unlocked: false },
+            streak100: { icon: '⚡', name: '坚持 100 天', desc: '连续打卡 100 天', unlocked: false }
+        };
+
+        // 激励语录
+        const MOTIVATIONS = [
+            "每一次的坚持，都在雕刻更好的自己",
+            "你的身体，值得被温柔以待",
+            "汗水是脂肪的眼泪，继续加油！",
+            "今天的汗水，明天的骄傲",
+            "坚持下去，你会感谢现在努力的自己",
+            "每一小步，都是通往成功的一大步",
+            "改变，从今天的坚持开始",
+            "你比想象中更强大",
+            "慢慢来，比较快",
+            "自律给我自由",
+            "坚持就是胜利，加油！",
+            "今天的努力，是明天的底气",
+            "减肥路上，你并不孤单",
+            "相信自己，你一定可以",
+            "每一次放弃都是对自己的辜负",
+            "美丽需要付出，而你正在路上",
+            "别让昨天的懒惰，毁了今天的努力",
+            "坚持运动的人，运气不会太差",
+            "你的坚持，终将美好",
+            "成功不是终点，放弃才是"
+        ];
+
+        // 当前日历月份
+        let currentCalendarDate = new Date();
+        
         // 初始化图表
         let weightChart = null;
 
@@ -206,6 +465,8 @@
             // 加载保存的数据
             loadGoal();
             loadRecords();
+            loadCheckins();
+            loadAchievements();
             
             // 绑定表单事件
             document.getElementById('weightForm').addEventListener('submit', addRecord);
@@ -213,8 +474,584 @@
             
             // 初始化图表
             initChart();
+            
+            // 渲染日历
+            renderCalendar();
+            
+            // 更新打卡状态
+            updateCheckinStatus();
+            
+            // 检查成就
+            setTimeout(() => checkAchievements(), 500);
         });
 
+        // ============ 打卡系统 ============
+        
+        function getCheckins() {
+            const data = localStorage.getItem(STORAGE_KEYS.checkins);
+            return data ? JSON.parse(data) : [];
+        }
+        
+        function saveCheckins(checkins) {
+            localStorage.setItem(STORAGE_KEYS.checkins, JSON.stringify(checkins));
+        }
+        
+        function loadCheckins() {
+            updateStreakDisplay();
+        }
+        
+        function toggleCheckin() {
+            const today = formatDateForStorage(new Date());
+            const checkins = getCheckins();
+            const lastCheckin = localStorage.getItem(STORAGE_KEYS.lastCheckin);
+            
+            // 检查今天是否已打卡
+            if (checkins.includes(today)) {
+                showToast('今天已经打卡啦！继续保持！', 'info');
+                return;
+            }
+            
+            // 检查是否断签
+            const yesterday = formatDateForStorage(new Date(Date.now() - 86400000));
+            if (lastCheckin && lastCheckin !== today && lastCheckin !== yesterday && !checkins.includes(yesterday)) {
+                // 断签了，重置连续天数显示但保留历史记录
+            }
+            
+            // 添加打卡
+            checkins.push(today);
+            saveCheckins(checkins);
+            localStorage.setItem(STORAGE_KEYS.lastCheckin, today);
+            
+            // 显示激励语
+            showMotivation();
+            
+            // 更新显示
+            updateCheckinStatus();
+            updateStreakDisplay();
+            renderCalendar();
+            
+            // 星星效果
+            createStars();
+            
+            // 检查打卡成就
+            checkStreakAchievements();
+        }
+        
+        function updateCheckinStatus() {
+            const today = formatDateForStorage(new Date());
+            const checkins = getCheckins();
+            const btn = document.getElementById('checkinBtn');
+            
+            if (checkins.includes(today)) {
+                btn.textContent = '✅ 已打卡';
+                btn.classList.remove('checkin-pulse', 'from-red-500', 'to-orange-500');
+                btn.classList.add('from-green-500', 'to-teal-500');
+            } else {
+                btn.textContent = '📅 今日打卡';
+                btn.classList.add('checkin-pulse', 'from-red-500', 'to-orange-500');
+                btn.classList.remove('from-green-500', 'to-teal-500');
+            }
+            
+            // 断签提醒
+            checkStreakWarning();
+        }
+        
+        function updateStreakDisplay() {
+            const streak = calculateStreak();
+            const el = document.getElementById('streakDays');
+            const oldValue = parseInt(el.textContent) || 0;
+            
+            if (streak !== oldValue) {
+                el.classList.add('number-pop');
+                el.textContent = streak;
+                setTimeout(() => el.classList.remove('number-pop'), 500);
+            } else {
+                el.textContent = streak;
+            }
+        }
+        
+        function calculateStreak() {
+            const checkins = getCheckins();
+            if (checkins.length === 0) return 0;
+            
+            const sortedCheckins = [...checkins].sort().reverse();
+            const today = formatDateForStorage(new Date());
+            const yesterday = formatDateForStorage(new Date(Date.now() - 86400000));
+            
+            // 检查今天或昨天是否有打卡
+            if (sortedCheckins[0] !== today && sortedCheckins[0] !== yesterday) {
+                return 0;
+            }
+            
+            let streak = 1;
+            let currentDate = new Date(sortedCheckins[0]);
+            
+            for (let i = 1; i < sortedCheckins.length; i++) {
+                const prevDate = new Date(currentDate);
+                prevDate.setDate(prevDate.getDate() - 1);
+                
+                if (formatDateForStorage(prevDate) === sortedCheckins[i]) {
+                    streak++;
+                    currentDate = prevDate;
+                } else {
+                    break;
+                }
+            }
+            
+            return streak;
+        }
+        
+        function checkStreakWarning() {
+            const checkins = getCheckins();
+            const today = formatDateForStorage(new Date());
+            const yesterday = formatDateForStorage(new Date(Date.now() - 86400000));
+            
+            // 如果昨天打卡了但今天还没打
+            if (checkins.includes(yesterday) && !checkins.includes(today)) {
+                const streak = calculateStreak();
+                document.getElementById('streakWarningDays').textContent = streak;
+                document.getElementById('streakWarning').classList.remove('hidden');
+            } else {
+                document.getElementById('streakWarning').classList.add('hidden');
+            }
+        }
+        
+        function showMotivation() {
+            const motivation = MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
+            document.getElementById('motivationContent').textContent = motivation;
+            document.getElementById('motivationText').classList.remove('hidden');
+        }
+        
+        // ============ 日历系统 ============
+        
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            const checkins = getCheckins();
+            
+            document.getElementById('calendarTitle').textContent = `${year}年${month + 1}月`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay();
+            const totalDays = lastDay.getDate();
+            
+            let html = '';
+            
+            // 填充空白
+            for (let i = 0; i < startDay; i++) {
+                html += '<div class="p-2"></div>';
+            }
+            
+            // 填充日期
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isChecked = checkins.includes(dateStr);
+                const isToday = dateStr === formatDateForStorage(new Date());
+                
+                let classes = 'p-2 text-center text-sm rounded-lg transition ';
+                if (isChecked) {
+                    classes += 'calendar-checked font-bold';
+                } else if (isToday) {
+                    classes += 'bg-purple-100 text-purple-600 font-bold';
+                } else {
+                    classes += 'hover:bg-gray-100';
+                }
+                
+                html += `<div class="${classes}">${day}</div>`;
+            }
+            
+            document.getElementById('calendarGrid').innerHTML = html;
+        }
+        
+        function changeMonth(delta) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+            renderCalendar();
+        }
+        
+        // ============ 成就系统 ============
+        
+        function getAchievements() {
+            const data = localStorage.getItem(STORAGE_KEYS.achievements);
+            return data ? JSON.parse(data) : {};
+        }
+        
+        function saveAchievements(achievements) {
+            localStorage.setItem(STORAGE_KEYS.achievements, JSON.stringify(achievements));
+        }
+        
+        function loadAchievements() {
+            const achievements = getAchievements();
+            renderAchievementWall(achievements);
+        }
+        
+        function renderAchievementWall(unlockedAchievements) {
+            const wall = document.getElementById('achievementWall');
+            let html = '';
+            
+            for (const [key, achievement] of Object.entries(ACHIEVEMENTS)) {
+                const isUnlocked = unlockedAchievements[key];
+                const classes = isUnlocked 
+                    ? 'text-3xl p-2 rounded-lg bg-gradient-to-br from-yellow-100 to-orange-100 badge-glow cursor-pointer' 
+                    : 'text-3xl p-2 rounded-lg bg-gray-100 grayscale opacity-40';
+                
+                html += `<div class="${classes}" title="${achievement.name}: ${achievement.desc}">${achievement.icon}</div>`;
+            }
+            
+            wall.innerHTML = html;
+        }
+        
+        function unlockAchievement(key) {
+            const achievements = getAchievements();
+            
+            if (achievements[key]) return; // 已解锁
+            
+            achievements[key] = true;
+            saveAchievements(achievements);
+            
+            const achievement = ACHIEVEMENTS[key];
+            showAchievementModal(achievement);
+            renderAchievementWall(achievements);
+        }
+        
+        function showAchievementModal(achievement) {
+            document.getElementById('achievementIcon').textContent = achievement.icon;
+            document.getElementById('achievementName').textContent = achievement.name;
+            document.getElementById('achievementDesc').textContent = achievement.desc;
+            document.getElementById('achievementModal').classList.remove('hidden');
+            document.getElementById('achievementModal').classList.add('flex');
+            
+            // 播放庆祝效果
+            createStars();
+        }
+        
+        function closeAchievementModal() {
+            document.getElementById('achievementModal').classList.add('hidden');
+            document.getElementById('achievementModal').classList.remove('flex');
+        }
+        
+        function checkAchievements() {
+            const records = getRecords();
+            const goal = getGoal();
+            
+            if (records.length === 0) return;
+            
+            const startWeight = records[0].weight;
+            const currentWeight = records[records.length - 1].weight;
+            const weightLost = startWeight - currentWeight;
+            
+            // 首次记录
+            if (records.length >= 1) {
+                unlockAchievement('firstRecord');
+            }
+            
+            // 减重成就
+            if (weightLost >= 1) unlockAchievement('lost1kg');
+            if (weightLost >= 5) unlockAchievement('lost5kg');
+            if (weightLost >= 10) unlockAchievement('lost10kg');
+            
+            // 打卡成就
+            checkStreakAchievements();
+        }
+        
+        function checkStreakAchievements() {
+            const streak = calculateStreak();
+            
+            if (streak >= 7) unlockAchievement('streak7');
+            if (streak >= 30) unlockAchievement('streak30');
+            if (streak >= 100) unlockAchievement('streak100');
+        }
+        
+        // ============ 进度可视化 ============
+        
+        function updateProgressVisualization() {
+            const records = getRecords();
+            const goal = getGoal();
+            
+            if (records.length === 0 || !goal) {
+                document.getElementById('progressSection').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('progressSection').classList.remove('hidden');
+            
+            const startWeight = records[0].weight;
+            const currentWeight = records[records.length - 1].weight;
+            const totalToLose = startWeight - goal;
+            
+            let progress = 0;
+            if (totalToLose > 0) {
+                const lost = startWeight - currentWeight;
+                progress = Math.min(100, Math.max(0, (lost / totalToLose) * 100));
+            } else if (currentWeight <= goal) {
+                progress = 100;
+            }
+            
+            document.getElementById('mainProgressBar').style.width = `${progress}%`;
+            document.getElementById('progressPercent').textContent = `${progress.toFixed(1)}%`;
+            document.getElementById('startWeightDisplay').textContent = startWeight.toFixed(1);
+            document.getElementById('goalWeightDisplay').textContent = goal.toFixed(1);
+            
+            // 预计达成日期
+            if (progress > 0 && progress < 100) {
+                const weeksData = calculateWeeklyStats();
+                if (weeksData.avgWeeklyLost > 0) {
+                    const remaining = currentWeight - goal;
+                    const weeksNeeded = remaining / weeksData.avgWeeklyLost;
+                    const estimatedDate = new Date();
+                    estimatedDate.setDate(estimatedDate.getDate() + (weeksNeeded * 7));
+                    
+                    document.getElementById('estimatedDate').classList.remove('hidden');
+                    document.getElementById('estimatedDateValue').textContent = 
+                        `${estimatedDate.getFullYear()}年${estimatedDate.getMonth() + 1}月${estimatedDate.getDate()}日`;
+                }
+            } else {
+                document.getElementById('estimatedDate').classList.add('hidden');
+            }
+        }
+        
+        function calculateWeeklyStats() {
+            const records = getRecords();
+            if (records.length < 2) return { weekLost: 0, monthLost: 0, avgWeeklyLost: 0 };
+            
+            const now = new Date();
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            
+            let weekStart = null, weekEnd = null;
+            let monthStart = null, monthEnd = null;
+            
+            for (const record of records) {
+                const date = new Date(record.date);
+                if (date >= weekAgo) {
+                    if (!weekStart || date < new Date(weekStart)) weekStart = record.date;
+                    if (!weekEnd || date > new Date(weekEnd)) weekEnd = record.date;
+                }
+                if (date >= monthAgo) {
+                    if (!monthStart || date < new Date(monthStart)) monthStart = record.date;
+                    if (!monthEnd || date > new Date(monthEnd)) monthEnd = record.date;
+                }
+            }
+            
+            const getWeight = (dateStr) => {
+                const r = records.find(r => r.date === dateStr);
+                return r ? r.weight : null;
+            };
+            
+            let weekLost = 0, monthLost = 0;
+            
+            if (weekStart && weekEnd) {
+                const startWeight = getWeight(weekStart);
+                const endWeight = getWeight(weekEnd);
+                if (startWeight && endWeight) weekLost = startWeight - endWeight;
+            }
+            
+            if (monthStart && monthEnd) {
+                const startWeight = getWeight(monthStart);
+                const endWeight = getWeight(monthEnd);
+                if (startWeight && endWeight) monthLost = startWeight - endWeight;
+            }
+            
+            // 平均每周减重
+            const totalDays = Math.max(1, Math.floor((new Date(records[records.length - 1].date) - new Date(records[0].date)) / (24 * 60 * 60 * 1000)));
+            const totalLost = records[0].weight - records[records.length - 1].weight;
+            const avgWeeklyLost = totalLost / (totalDays / 7);
+            
+            return { weekLost, monthLost, avgWeeklyLost };
+        }
+        
+        function updateWeeklyStats() {
+            const stats = calculateWeeklyStats();
+            
+            document.getElementById('weekLost').textContent = stats.weekLost >= 0 ? `-${stats.weekLost.toFixed(1)}` : `+${Math.abs(stats.weekLost).toFixed(1)}`;
+            document.getElementById('monthLost').textContent = stats.monthLost >= 0 ? `-${stats.monthLost.toFixed(1)}` : `+${Math.abs(stats.monthLost).toFixed(1)}`;
+            document.getElementById('avgWeeklyLost').textContent = stats.avgWeeklyLost >= 0 ? `-${stats.avgWeeklyLost.toFixed(2)}` : `+${Math.abs(stats.avgWeeklyLost).toFixed(2)}`;
+        }
+        
+        // ============ 分享海报 ============
+        
+        function generatePoster() {
+            const records = getRecords();
+            const checkins = getCheckins();
+            const streak = calculateStreak();
+            const goal = getGoal();
+            
+            if (records.length === 0) {
+                showToast('请先记录体重再生成海报', 'error');
+                return;
+            }
+            
+            const canvas = document.getElementById('posterCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置画布尺寸
+            canvas.width = 400;
+            canvas.height = 600;
+            
+            // 背景渐变
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 装饰圆圈
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.beginPath();
+            ctx.arc(350, 100, 80, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(50, 500, 60, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 标题
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 28px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🧘 减肥打卡', canvas.width / 2, 50);
+            
+            // 当前体重
+            const currentWeight = records[records.length - 1].weight;
+            const startWeight = records[0].weight;
+            const weightLost = startWeight - currentWeight;
+            
+            ctx.font = 'bold 48px sans-serif';
+            ctx.fillText(`${currentWeight.toFixed(1)} kg`, canvas.width / 2, 130);
+            
+            ctx.font = '18px sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillText('当前体重', canvas.width / 2, 160);
+            
+            // 统计卡片
+            const cardY = 200;
+            const cardHeight = 80;
+            const cardWidth = 170;
+            
+            // 卡片背景
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            roundRect(ctx, 20, cardY, cardWidth, cardHeight, 10);
+            roundRect(ctx, 210, cardY, cardWidth, cardHeight, 10);
+            
+            // 已减重
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 32px sans-serif';
+            ctx.fillText(`${weightLost >= 0 ? '-' : '+'}${Math.abs(weightLost).toFixed(1)} kg`, 105, cardY + 45);
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = '#666';
+            ctx.fillText('已减重', 105, cardY + 70);
+            
+            // 连续打卡
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 32px sans-serif';
+            ctx.fillText(`${streak} 天`, 295, cardY + 45);
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = '#666';
+            ctx.fillText('🔥 连续打卡', 295, cardY + 70);
+            
+            // 进度条
+            const progressY = 310;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            roundRect(ctx, 40, progressY, 320, 20, 10);
+            
+            let progress = 0;
+            if (goal && startWeight > goal) {
+                progress = Math.min(100, Math.max(0, ((startWeight - currentWeight) / (startWeight - goal)) * 100));
+            }
+            
+            ctx.fillStyle = '#f97316';
+            roundRect(ctx, 40, progressY, 320 * (progress / 100), 20, 10);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${progress.toFixed(0)}%`, canvas.width / 2, progressY + 14);
+            
+            // 目标信息
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.textAlign = 'left';
+            ctx.fillText(`初始: ${startWeight.toFixed(1)}kg`, 45, progressY + 40);
+            ctx.textAlign = 'right';
+            ctx.fillText(`目标: ${goal ? goal.toFixed(1) : '--'}kg`, 355, progressY + 40);
+            
+            // 激励语录
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'white';
+            ctx.font = 'italic 16px sans-serif';
+            const quote = MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
+            ctx.fillText(quote, canvas.width / 2, 400);
+            
+            // 日期
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.fillText(formatDateFull(new Date()), canvas.width / 2, 450);
+            
+            // 底部二维码区域（示意）
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fillRect(canvas.width / 2 - 50, 480, 100, 100);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('减肥记录', canvas.width / 2, 540);
+            
+            // 显示模态框
+            document.getElementById('posterModal').classList.remove('hidden');
+            document.getElementById('posterModal').classList.add('flex');
+        }
+        
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        function closePosterModal() {
+            document.getElementById('posterModal').classList.add('hidden');
+            document.getElementById('posterModal').classList.remove('flex');
+        }
+        
+        function downloadPoster() {
+            const canvas = document.getElementById('posterCanvas');
+            const link = document.createElement('a');
+            link.download = `减肥打卡-${formatDateForFile(new Date())}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('海报已保存！');
+        }
+        
+        // ============ 智能提醒 ============
+        
+        function showSmartReminder(weightChange) {
+            const reminderEl = document.getElementById('smartReminder');
+            let message = '';
+            let bgColor = '';
+            
+            if (weightChange > 0) {
+                message = '💪 别灰心，波动是正常的，继续保持！';
+                bgColor = 'bg-amber-50 text-amber-700';
+            } else if (weightChange === 0) {
+                message = '⏳ 平台期是突破的前奏，加油！';
+                bgColor = 'bg-blue-50 text-blue-700';
+            } else {
+                message = `🎉 太棒了！今天又轻了 ${Math.abs(weightChange).toFixed(1)} kg！继续加油，你离目标越来越近了！`;
+                bgColor = 'bg-green-50 text-green-700';
+            }
+            
+            reminderEl.textContent = message;
+            reminderEl.className = `mt-4 p-3 rounded-lg text-sm text-center ${bgColor}`;
+            reminderEl.classList.remove('hidden');
+        }
+        
+        // ============ 原有功能 ============
+        
         // 初始化图表
         function initChart() {
             const ctx = document.getElementById('weightChart').getContext('2d');
@@ -342,7 +1179,7 @@
                 document.getElementById('height').value = height;
             }
             
-            updateGoalProgress();
+            updateStats();
         }
 
         // 保存目标
@@ -358,31 +1195,10 @@
             }
             
             updateStats();
-            updateGoalProgress();
+            updateProgressVisualization();
             updateChart();
             
             showToast('目标设置已保存！');
-        }
-
-        // 更新目标进度
-        function updateGoalProgress() {
-            const goal = getGoal();
-            const records = getRecords();
-            
-            if (!goal || records.length === 0) {
-                document.getElementById('goalProgress').classList.add('hidden');
-                return;
-            }
-            
-            const currentWeight = records[records.length - 1].weight;
-            const startWeight = records[0].weight;
-            const distance = currentWeight - goal;
-            const totalToLose = startWeight - goal;
-            const progress = totalToLose > 0 ? Math.min(100, Math.max(0, ((startWeight - currentWeight) / totalToLose) * 100)) : 0;
-            
-            document.getElementById('goalProgress').classList.remove('hidden');
-            document.getElementById('distanceToGoal').textContent = distance > 0 ? `还需减 ${distance.toFixed(1)} kg` : `已达成目标！🎉`;
-            document.getElementById('progressBar').style.width = `${progress}%`;
         }
 
         // 添加记录
@@ -399,11 +1215,20 @@
             
             const records = getRecords();
             const existingIndex = records.findIndex(r => r.date === date);
+            let weightChange = 0;
             
             if (existingIndex >= 0) {
+                weightChange = weight - records[existingIndex].weight;
                 records[existingIndex].weight = weight;
                 showToast('已更新该日期的体重记录');
             } else {
+                // 计算与上次记录的差值
+                if (records.length > 0) {
+                    const lastRecord = records[records.length - 1];
+                    if (new Date(date) > new Date(lastRecord.date)) {
+                        weightChange = weight - lastRecord.weight;
+                    }
+                }
                 records.push({
                     id: Date.now(),
                     date: date,
@@ -418,6 +1243,16 @@
             saveRecords(records);
             loadRecords();
             updateChart();
+            updateProgressVisualization();
+            updateWeeklyStats();
+            
+            // 显示智能提醒
+            if (records.length > 1) {
+                showSmartReminder(weightChange);
+            }
+            
+            // 检查成就
+            checkAchievements();
             
             // 清空表单
             document.getElementById('recordWeight').value = '';
@@ -443,7 +1278,7 @@
                     <div class="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg fade-in">
                         <div>
                             <div class="font-semibold text-gray-800">${record.weight} kg</div>
-                            <div class="text-sm text-gray-500">${formatDate(record.date)}</div>
+                            <div class="text-sm text-gray-500">${formatDateFull(new Date(record.date))}</div>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="openEditModal(${record.id})" 
@@ -460,6 +1295,8 @@
             }
             
             updateStats();
+            updateWeeklyStats();
+            updateProgressVisualization();
         }
 
         // 更新统计数据
@@ -474,7 +1311,7 @@
                 const weightLost = startWeight - currentWeight;
                 
                 document.getElementById('currentWeight').textContent = currentWeight.toFixed(1);
-                document.getElementById('weightLost').textContent = (weightLost >= 0 ? '+' : '') + weightLost.toFixed(1);
+                document.getElementById('weightLost').textContent = (weightLost >= 0 ? '-' : '+') + Math.abs(weightLost).toFixed(1);
                 
                 // BMI 计算
                 if (height > 0) {
@@ -534,6 +1371,7 @@
                 saveRecords(records);
                 loadRecords();
                 updateChart();
+                updateProgressVisualization();
                 closeEditModal();
                 showToast('记录已更新！');
             }
@@ -547,6 +1385,7 @@
                 saveRecords(records);
                 loadRecords();
                 updateChart();
+                updateProgressVisualization();
                 showToast('记录已删除');
             }
         }
@@ -557,6 +1396,8 @@
                 records: getRecords(),
                 goal: getGoal(),
                 height: getHeight(),
+                checkins: getCheckins(),
+                achievements: getAchievements(),
                 exportDate: new Date().toISOString()
             };
             
@@ -590,10 +1431,20 @@
                     if (data.height) {
                         localStorage.setItem(STORAGE_KEYS.height, data.height);
                     }
+                    if (data.checkins) {
+                        localStorage.setItem(STORAGE_KEYS.checkins, JSON.stringify(data.checkins));
+                    }
+                    if (data.achievements) {
+                        localStorage.setItem(STORAGE_KEYS.achievements, JSON.stringify(data.achievements));
+                    }
                     
                     loadGoal();
                     loadRecords();
+                    loadCheckins();
+                    loadAchievements();
                     updateChart();
+                    renderCalendar();
+                    updateCheckinStatus();
                     
                     showToast('数据导入成功！');
                 } catch (error) {
@@ -609,22 +1460,36 @@
         // 清除所有数据
         function clearAllData() {
             if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
-                localStorage.removeItem(STORAGE_KEYS.records);
-                localStorage.removeItem(STORAGE_KEYS.goal);
-                localStorage.removeItem(STORAGE_KEYS.height);
+                Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
                 
                 loadGoal();
                 loadRecords();
+                loadCheckins();
+                loadAchievements();
                 updateChart();
+                renderCalendar();
+                updateCheckinStatus();
                 
                 showToast('所有数据已清除');
             }
         }
 
+        // ============ 工具函数 ============
+        
         // 格式化日期显示
         function formatDate(dateStr) {
             const date = new Date(dateStr);
             return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+        
+        // 格式化完整日期
+        function formatDateFull(date) {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+
+        // 格式化日期用于存储
+        function formatDateForStorage(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         }
 
         // 格式化日期用于文件名
@@ -636,7 +1501,7 @@
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-white font-medium shadow-lg z-50 fade-in ${
-                type === 'error' ? 'bg-red-500' : 'bg-green-500'
+                type === 'error' ? 'bg-red-500' : type === 'info' ? 'bg-blue-500' : 'bg-green-500'
             }`;
             toast.textContent = message;
             document.body.appendChild(toast);
@@ -648,10 +1513,39 @@
             }, 2000);
         }
 
+        // 创建星星效果
+        function createStars() {
+            const stars = ['⭐', '✨', '🌟', '💫'];
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const star = document.createElement('div');
+                    star.className = 'star-fall';
+                    star.textContent = stars[Math.floor(Math.random() * stars.length)];
+                    star.style.left = Math.random() * 100 + 'vw';
+                    star.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                    document.body.appendChild(star);
+                    
+                    setTimeout(() => star.remove(), 1500);
+                }, i * 100);
+            }
+        }
+
         // 点击模态框外部关闭
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeEditModal();
+            }
+        });
+        
+        document.getElementById('achievementModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAchievementModal();
+            }
+        });
+        
+        document.getElementById('posterModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePosterModal();
             }
         });
     </script>
