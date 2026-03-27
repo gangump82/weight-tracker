@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.weighttracker.ui.viewmodel.MainViewModel
 
 @Composable
@@ -57,7 +56,7 @@ fun StatsScreen(viewModel: MainViewModel = viewModel()) {
                     val progress = if (totalToLose > 0) (lost / totalToLose).toFloat().coerceIn(0f, 1f) else 0f
                     
                     LinearProgressIndicator(
-                        progress = { progress },
+                        progress = progress,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(8.dp),
