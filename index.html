@@ -88,6 +88,7 @@
             <button class="tab-btn active flex-1 min-w-[60px] py-2 px-3 rounded-lg text-sm font-medium text-white/80" data-tab="weight">⚖️ 体重</button>
             <button class="tab-btn flex-1 min-w-[60px] py-2 px-3 rounded-lg text-sm font-medium text-white/80" data-tab="exercise">🏃 运动</button>
             <button class="tab-btn flex-1 min-w-[60px] py-2 px-3 rounded-lg text-sm font-medium text-white/80" data-tab="diet">🥗 饮食</button>
+            <button class="tab-btn flex-1 min-w-[60px] py-2 px-3 rounded-lg text-sm font-medium text-white/80" data-tab="nutritionist">👨‍⚕️ 营养师</button>
             <button class="tab-btn flex-1 min-w-[60px] py-2 px-3 rounded-lg text-sm font-medium text-white/80" data-tab="stats">📊 统计</button>
         </div>
 
@@ -459,6 +460,114 @@
                     </select>
                 </div>
                 <div id="dietHistoryList" class="space-y-2 max-h-64 overflow-y-auto hide-scrollbar"></div>
+            </div>
+        </div>
+
+        <!-- ============ 营养师 Tab ============ -->
+        <div id="nutritionistTab" class="tab-content">
+            <div class="card rounded-xl p-4 shadow-lg mb-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <span>👨‍⚕️</span> 顶级营养师
+                </h3>
+                <p class="text-sm text-gray-600 mb-4">基于您的身体状况和目标，为您量身定制一周营养食谱</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">选择人群类型</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2" id="peopleTypeGrid"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">特殊需求（可选）</label>
+                            <select id="specialNeed" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="">无特殊需求</option>
+                                <option value="diabetes">糖尿病</option>
+                                <option value="hypertension">高血压</option>
+                                <option value="hyperlipidemia">高血脂</option>
+                                <option value="gout">痛风</option>
+                                <option value="anemia">贫血</option>
+                                <option value="constipation">便秘</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">饮食偏好</label>
+                            <select id="dietPreference" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="normal">正常饮食</option>
+                                <option value="vegetarian">素食</option>
+                                <option value="lowCarb">低碳水</option>
+                                <option value="highProtein">高蛋白</option>
+                                <option value="light">清淡饮食</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button onclick="generateMealPlan()" class="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 rounded-lg font-medium hover:from-green-600 hover:to-teal-600 transition flex items-center justify-center gap-2">
+                        <span>🧬</span> 生成专属食谱
+                    </button>
+                </div>
+            </div>
+
+            <div id="mealPlanContainer" class="hidden">
+                <div class="card rounded-xl p-4 shadow-lg mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">📋 一周食谱</h3>
+                        <div class="flex gap-2">
+                            <button onclick="exportMealPlan()" class="text-sm bg-purple-100 text-purple-600 px-3 py-1 rounded-lg hover:bg-purple-200 transition">📤 导出</button>
+                            <button onclick="generateMealPlan()" class="text-sm bg-green-100 text-green-600 px-3 py-1 rounded-lg hover:bg-green-200 transition">🔄 重新生成</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 p-3 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg">
+                        <div class="flex items-center gap-2 text-sm text-gray-700">
+                            <span class="text-lg">📊</span>
+                            <div>
+                                <span class="font-medium">每日推荐热量：</span>
+                                <span id="recommendedCalories" class="text-green-600 font-bold">--</span> kcal
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-700 mt-1">
+                            <span class="text-lg">🎯</span>
+                            <div id="nutritionGoalText">根据您的身体状况计算</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日期选择器 -->
+                    <div class="flex gap-1 mb-4 overflow-x-auto hide-scrollbar pb-2" id="daySelector"></div>
+                    
+                    <!-- 当日食谱展示 -->
+                    <div id="dailyMealPlan" class="space-y-4"></div>
+                </div>
+                
+                <div class="card rounded-xl p-4 shadow-lg mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">📈 一周营养分析</h3>
+                    <div class="grid grid-cols-4 gap-2 mb-4">
+                        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-3 text-center">
+                            <div class="text-xl font-bold text-yellow-600" id="weekAvgCalories">--</div>
+                            <div class="text-xs text-gray-500">日均热量</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-red-50 to-pink-50 rounded-lg p-3 text-center">
+                            <div class="text-xl font-bold text-red-600" id="weekAvgProtein">--</div>
+                            <div class="text-xs text-gray-500">日均蛋白(g)</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-50 to-teal-50 rounded-lg p-3 text-center">
+                            <div class="text-xl font-bold text-green-600" id="weekAvgCarbs">--</div>
+                            <div class="text-xs text-gray-500">日均碳水(g)</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 text-center">
+                            <div class="text-xl font-bold text-blue-600" id="weekAvgFat">--</div>
+                            <div class="text-xs text-gray-500">日均脂肪(g)</div>
+                        </div>
+                    </div>
+                    <div class="relative h-48">
+                        <canvas id="nutritionChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card rounded-xl p-4 shadow-lg mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">💡 营养师建议</h3>
+                    <div id="nutritionistTips" class="text-sm text-gray-600 space-y-2"></div>
+                </div>
             </div>
         </div>
 
@@ -2105,6 +2214,9 @@
             // 初始化已选食物列表
             renderSelectedFoods();
             
+            // 初始化人群类型选择
+            initPeopleTypes();
+            
             // 加载所有数据并渲染
             updateUI();
             updateExerciseUI();
@@ -2113,6 +2225,626 @@
             // 检查成就
             checkNewAchievements();
         });
+        
+        // ============ 营养师模块 ============
+        const PEOPLE_TYPES = {
+            baby: { name: '婴儿(6-12月)', icon: '👶', caloriesPerKg: 90, proteinPerKg: 2.0, focus: '易消化、营养丰富' },
+            toddler: { name: '幼儿(1-3岁)', icon: '🧒', caloriesPerKg: 80, proteinPerKg: 1.5, focus: '均衡营养、促进发育' },
+            child: { name: '儿童(4-12岁)', icon: '👦', caloriesPerKg: 70, proteinPerKg: 1.2, focus: '成长所需、口味适中' },
+            pregnant: { name: '孕妇', icon: '🤰', extraCalories: 300, extraProtein: 25, focus: '叶酸、铁、钙' },
+            lactating: { name: '哺乳期', icon: '🤱', extraCalories: 500, extraProtein: 20, focus: '优质蛋白、汤水' },
+            fitness: { name: '健身人士', icon: '💪', proteinRatio: 0.3, carbsRatio: 0.45, focus: '高蛋白、复合碳水' },
+            muscle_gain: { name: '增肌人群', icon: '🏋️', proteinRatio: 0.35, carbsRatio: 0.40, focus: '热量盈余、优质蛋白' },
+            elderly: { name: '中老年人', icon: '👴', proteinRatio: 0.20, focus: '易消化、低脂低盐' },
+            senior_health: { name: '养生保健', icon: '🧓', proteinRatio: 0.18, focus: '清淡饮食、滋补' },
+            weight_loss: { name: '减脂人群', icon: '🧘', proteinRatio: 0.30, fatRatio: 0.25, focus: '热量控制、高蛋白' },
+            diabetic: { name: '糖尿病', icon: '🩺', carbsRatio: 0.45, lowGI: true, focus: '低GI、控制碳水' },
+            student: { name: '学生党', icon: '📚', focus: '补脑益智、营养均衡' }
+        };
+        
+        const SPECIAL_CONDITIONS = {
+            diabetes: { name: '糖尿病', avoid: ['white_rice', 'sugar', 'honey', 'sweets'], focus: '低GI食物', tips: ['选择全谷物替代精制米面', '控制水果摄入量', '定时定量进餐'] },
+            hypertension: { name: '高血压', avoid: ['pickle', 'salted_fish', 'processed_meat'], focus: '低盐饮食', tips: ['每日盐摄入不超过5g', '多吃高钾食物', '避免腌制食品'] },
+            hyperlipidemia: { name: '高血脂', avoid: ['fatty_meat', 'animal_fat', 'organ_meat'], focus: '低脂饮食', tips: ['选择瘦肉和鱼', '多吃蔬菜水果', '用植物油代替动物油'] },
+            gout: { name: '痛风', avoid: ['seafood', 'organ_meat', 'mushroom', 'spinach'], focus: '低嘌呤饮食', tips: ['多喝水', '避免高嘌呤食物', '限制酒精'] },
+            anemia: { name: '贫血', focus: '补铁食物', tips: ['多吃红肉、动物肝脏', '搭配维生素C促进吸收', '饭后避免喝茶'] },
+            constipation: { name: '便秘', focus: '高纤维食物', tips: ['多吃蔬菜水果', '多喝水', '适量运动'] }
+        };
+        
+        // 食谱数据库
+        const RECIPE_DATABASE = {
+            breakfast: {
+                normal: [
+                    { name: '燕麦粥+鸡蛋+牛奶', calories: 380, protein: 18, carbs: 45, fat: 12, fiber: 5, tags: ['high_protein', 'low_fat'] },
+                    { name: '全麦面包+煎蛋+酸奶', calories: 420, protein: 20, carbs: 48, fat: 15, fiber: 4, tags: ['balanced'] },
+                    { name: '小米粥+肉包子+豆浆', calories: 450, protein: 18, carbs: 60, fat: 14, fiber: 3, tags: ['traditional'] },
+                    { name: '鸡蛋灌饼+豆浆', calories: 480, protein: 16, carbs: 55, fat: 20, fiber: 2, tags: ['traditional'] },
+                    { name: '杂粮馒头+鸡蛋+牛奶', calories: 400, protein: 18, carbs: 50, fat: 12, fiber: 6, tags: ['high_fiber'] },
+                    { name: '蔬菜鸡蛋饼+小米粥', calories: 360, protein: 15, carbs: 42, fat: 14, fiber: 4, tags: ['vegetarian'] },
+                    { name: '玉米+煮鸡蛋+豆浆', calories: 350, protein: 16, carbs: 40, fat: 12, fiber: 5, tags: ['low_fat', 'high_fiber'] }
+                ],
+                baby: [
+                    { name: '蛋黄泥+米粉糊', calories: 180, protein: 8, carbs: 25, fat: 6, fiber: 1, tags: ['baby_friendly'] },
+                    { name: '蔬菜泥+小米粥', calories: 150, protein: 5, carbs: 28, fat: 3, fiber: 3, tags: ['baby_friendly'] },
+                    { name: '南瓜泥+蛋黄', calories: 160, protein: 6, carbs: 22, fat: 5, fiber: 2, tags: ['baby_friendly'] }
+                ],
+                pregnant: [
+                    { name: '核桃燕麦粥+鸡蛋', calories: 420, protein: 18, carbs: 48, fat: 18, fiber: 5, tags: ['pregnancy', 'brain'] },
+                    { name: '全麦面包+牛油果+鸡蛋', calories: 480, protein: 18, carbs: 45, fat: 24, fiber: 8, tags: ['pregnancy'] },
+                    { name: '红枣小米粥+鸡蛋+核桃', calories: 450, protein: 16, carbs: 55, fat: 16, fiber: 4, tags: ['pregnancy', 'iron'] }
+                ],
+                fitness: [
+                    { name: '蛋白粉燕麦+鸡蛋+香蕉', calories: 520, protein: 35, carbs: 55, fat: 12, fiber: 6, tags: ['high_protein'] },
+                    { name: '全麦吐司+蛋白+花生酱', calories: 480, protein: 28, carbs: 48, fat: 18, fiber: 5, tags: ['high_protein'] },
+                    { name: '希腊酸奶+燕麦+坚果', calories: 450, protein: 30, carbs: 45, fat: 15, fiber: 5, tags: ['high_protein'] }
+                ],
+                elderly: [
+                    { name: '南瓜小米粥+蒸蛋', calories: 320, protein: 14, carbs: 42, fat: 10, fiber: 4, tags: ['easy_digest'] },
+                    { name: '山药粥+软饼+豆浆', calories: 350, protein: 12, carbs: 50, fat: 10, fiber: 4, tags: ['easy_digest'] },
+                    { name: '银耳羹+全麦馒头+鸡蛋', calories: 340, protein: 14, carbs: 48, fat: 10, fiber: 5, tags: ['tonic'] }
+                ],
+                vegetarian: [
+                    { name: '蔬菜饼+豆浆+坚果', calories: 380, protein: 15, carbs: 45, fat: 16, fiber: 6, tags: ['vegetarian'] },
+                    { name: '全麦三明治+牛油果+豆浆', calories: 400, protein: 14, carbs: 48, fat: 18, fiber: 8, tags: ['vegetarian'] }
+                ],
+                lowCarb: [
+                    { name: '煎蛋+培根+牛油果', calories: 380, protein: 20, carbs: 8, fat: 30, fiber: 5, tags: ['low_carb'] },
+                    { name: '蔬菜蛋饼+奶酪', calories: 350, protein: 22, carbs: 10, fat: 26, fiber: 3, tags: ['low_carb'] }
+                ],
+                diabetic: [
+                    { name: '燕麦片+煮蛋+无糖豆浆', calories: 320, protein: 18, carbs: 35, fat: 10, fiber: 6, tags: ['low_gi'] },
+                    { name: '全麦面包+鸡蛋+无糖酸奶', calories: 350, protein: 18, carbs: 38, fat: 12, fiber: 5, tags: ['low_gi'] }
+                ]
+            },
+            lunch: {
+                normal: [
+                    { name: '米饭+清蒸鱼+炒青菜', calories: 550, protein: 28, carbs: 70, fat: 15, fiber: 5, tags: ['balanced', 'fish'] },
+                    { name: '米饭+红烧鸡块+炒西兰花', calories: 620, protein: 30, carbs: 75, fat: 20, fiber: 4, tags: ['traditional'] },
+                    { name: '面条+番茄牛腩+青菜', calories: 600, protein: 25, carbs: 80, fat: 18, fiber: 4, tags: ['traditional'] },
+                    { name: '杂粮饭+豆腐烧肉+炒时蔬', calories: 580, protein: 24, carbs: 72, fat: 18, fiber: 6, tags: ['balanced'] },
+                    { name: '米饭+宫保鸡丁+凉拌黄瓜', calories: 560, protein: 26, carbs: 68, fat: 18, fiber: 3, tags: ['traditional'] },
+                    { name: '糙米饭+清炒虾仁+炒芦笋', calories: 520, protein: 28, carbs: 65, fat: 14, fiber: 5, tags: ['high_protein'] },
+                    { name: '米饭+番茄炒蛋+清炒豆角', calories: 500, protein: 20, carbs: 70, fat: 15, fiber: 4, tags: ['vegetarian_friendly'] }
+                ],
+                baby: [
+                    { name: '软烂面条+蔬菜泥+肉泥', calories: 280, protein: 12, carbs: 35, fat: 10, fiber: 3, tags: ['baby_friendly'] },
+                    { name: '软米饭+蒸蛋+蔬菜碎', calories: 260, protein: 10, carbs: 38, fat: 8, fiber: 2, tags: ['baby_friendly'] }
+                ],
+                pregnant: [
+                    { name: '糙米饭+清蒸鲈鱼+菠菜', calories: 580, protein: 32, carbs: 70, fat: 16, fiber: 6, tags: ['pregnancy', 'dha'] },
+                    { name: '米饭+红烧牛肉+西兰花', calories: 650, protein: 35, carbs: 75, fat: 20, fiber: 5, tags: ['pregnancy', 'iron'] },
+                    { name: '杂粮饭+虾仁豆腐+青菜', calories: 560, protein: 30, carbs: 68, fat: 15, fiber: 5, tags: ['pregnancy', 'calcium'] }
+                ],
+                fitness: [
+                    { name: '糙米饭+鸡胸肉+西兰花', calories: 620, protein: 45, carbs: 65, fat: 12, fiber: 5, tags: ['high_protein'] },
+                    { name: '杂粮饭+煎牛排+沙拉', calories: 680, protein: 42, carbs: 60, fat: 22, fiber: 6, tags: ['high_protein'] },
+                    { name: '意面+金枪鱼+蔬菜', calories: 650, protein: 38, carbs: 75, fat: 18, fiber: 5, tags: ['high_protein'] }
+                ],
+                elderly: [
+                    { name: '软烂米饭+清蒸鱼+炒丝瓜', calories: 480, protein: 24, carbs: 60, fat: 12, fiber: 4, tags: ['easy_digest'] },
+                    { name: '面条+鸡蛋羹+青菜', calories: 450, protein: 20, carbs: 62, fat: 12, fiber: 4, tags: ['easy_digest'] },
+                    { name: '杂粮粥+清蒸肉丸+炒菠菜', calories: 460, protein: 22, carbs: 58, fat: 14, fiber: 5, tags: ['easy_digest'] }
+                ],
+                vegetarian: [
+                    { name: '糙米饭+麻婆豆腐+炒青菜', calories: 520, protein: 18, carbs: 70, fat: 16, fiber: 6, tags: ['vegetarian'] },
+                    { name: '素炒面+素鸡+蔬菜', calories: 500, protein: 16, carbs: 72, fat: 14, fiber: 5, tags: ['vegetarian'] }
+                ],
+                lowCarb: [
+                    { name: '花椰菜饭+煎三文鱼+沙拉', calories: 480, protein: 35, carbs: 15, fat: 32, fiber: 6, tags: ['low_carb'] },
+                    { name: '蔬菜沙拉+烤鸡胸+牛油果', calories: 450, protein: 38, carbs: 12, fat: 28, fiber: 8, tags: ['low_carb'] }
+                ],
+                diabetic: [
+                    { name: '杂粮饭+清蒸鱼+炒青菜', calories: 480, protein: 28, carbs: 50, fat: 14, fiber: 6, tags: ['low_gi'] },
+                    { name: '荞麦面+鸡丝+黄瓜', calories: 450, protein: 26, carbs: 48, fat: 12, fiber: 5, tags: ['low_gi'] }
+                ]
+            },
+            dinner: {
+                normal: [
+                    { name: '小米粥+清炒时蔬+煎饺', calories: 450, protein: 16, carbs: 58, fat: 16, fiber: 4, tags: ['light'] },
+                    { name: '米饭+蒜蓉虾+炒豆苗', calories: 520, protein: 26, carbs: 65, fat: 15, fiber: 4, tags: ['balanced'] },
+                    { name: '杂粮粥+肉末茄子+凉菜', calories: 480, protein: 18, carbs: 60, fat: 16, fiber: 5, tags: ['traditional'] },
+                    { name: '馒头+冬瓜排骨汤+炒青菜', calories: 500, protein: 22, carbs: 62, fat: 16, fiber: 4, tags: ['soup'] },
+                    { name: '米饭+香菇滑鸡+炒西兰花', calories: 530, protein: 24, carbs: 65, fat: 17, fiber: 5, tags: ['balanced'] },
+                    { name: '蔬菜汤面+卤蛋+小菜', calories: 420, protein: 18, carbs: 58, fat: 12, fiber: 4, tags: ['light'] },
+                    { name: '红薯粥+清蒸蛋+凉拌黄瓜', calories: 380, protein: 14, carbs: 55, fat: 10, fiber: 4, tags: ['light'] }
+                ],
+                baby: [
+                    { name: '蔬菜粥+蛋黄泥', calories: 200, protein: 8, carbs: 28, fat: 6, fiber: 2, tags: ['baby_friendly'] },
+                    { name: '南瓜粥+豆腐泥', calories: 180, protein: 6, carbs: 30, fat: 4, fiber: 3, tags: ['baby_friendly'] }
+                ],
+                pregnant: [
+                    { name: '鲫鱼豆腐汤+米饭+青菜', calories: 520, protein: 28, carbs: 60, fat: 15, fiber: 4, tags: ['pregnancy', 'calcium'] },
+                    { name: '红枣银耳羹+小米粥+核桃', calories: 480, protein: 14, carbs: 65, fat: 16, fiber: 5, tags: ['pregnancy', 'tonic'] },
+                    { name: '排骨莲藕汤+米饭+炒菠菜', calories: 560, protein: 26, carbs: 62, fat: 20, fiber: 5, tags: ['pregnancy', 'calcium'] }
+                ],
+                fitness: [
+                    { name: '糙米饭+煎鸡胸+蔬菜沙拉', calories: 550, protein: 40, carbs: 55, fat: 14, fiber: 6, tags: ['high_protein'] },
+                    { name: '土豆泥+烤鱼+西兰花', calories: 520, protein: 35, carbs: 50, fat: 15, fiber: 5, tags: ['high_protein'] },
+                    { name: '蔬菜炒蛋白+糙米饭', calories: 480, protein: 32, carbs: 52, fat: 12, fiber: 5, tags: ['high_protein', 'low_fat'] }
+                ],
+                elderly: [
+                    { name: '南瓜粥+清蒸蛋+炒青菜', calories: 380, protein: 14, carbs: 52, fat: 10, fiber: 4, tags: ['easy_digest'] },
+                    { name: '冬瓜肉丸汤+软米饭', calories: 400, protein: 18, carbs: 52, fat: 12, fiber: 4, tags: ['easy_digest'] },
+                    { name: '山药排骨汤+青菜+馒头', calories: 420, protein: 20, carbs: 50, fat: 14, fiber: 4, tags: ['tonic'] }
+                ],
+                vegetarian: [
+                    { name: '蔬菜粥+素包子+小菜', calories: 400, protein: 14, carbs: 58, fat: 12, fiber: 5, tags: ['vegetarian'] },
+                    { name: '杂粮粥+豆腐+炒青菜', calories: 380, protein: 16, carbs: 52, fat: 10, fiber: 6, tags: ['vegetarian'] }
+                ],
+                lowCarb: [
+                    { name: '蔬菜汤+煎蛋+牛油果', calories: 380, protein: 18, carbs: 10, fat: 30, fiber: 6, tags: ['low_carb'] },
+                    { name: '花椰菜饭+炒虾仁+青菜', calories: 400, protein: 28, carbs: 12, fat: 26, fiber: 5, tags: ['low_carb'] }
+                ],
+                diabetic: [
+                    { name: '杂粮粥+清蒸鱼+青菜', calories: 400, protein: 24, carbs: 42, fat: 12, fiber: 5, tags: ['low_gi'] },
+                    { name: '苦瓜炒蛋+小米粥+青菜', calories: 380, protein: 18, carbs: 40, fat: 14, fiber: 5, tags: ['low_gi'] }
+                ]
+            },
+            snack: {
+                normal: [
+                    { name: '苹果', calories: 95, protein: 0, carbs: 25, fat: 0, fiber: 4, tags: ['fruit'] },
+                    { name: '酸奶', calories: 120, protein: 6, carbs: 15, fat: 4, fiber: 0, tags: ['dairy'] },
+                    { name: '坚果一小把', calories: 150, protein: 5, carbs: 6, fat: 13, fiber: 2, tags: ['nuts'] },
+                    { name: '香蕉', calories: 105, protein: 1, carbs: 27, fat: 0, fiber: 3, tags: ['fruit'] },
+                    { name: '牛奶', calories: 150, protein: 8, carbs: 12, fat: 8, fiber: 0, tags: ['dairy'] },
+                    { name: '橙子', calories: 65, protein: 1, carbs: 16, fat: 0, fiber: 3, tags: ['fruit', 'vitamin_c'] },
+                    { name: '全麦饼干+芝士', calories: 140, protein: 5, carbs: 15, fat: 7, fiber: 2, tags: ['balanced'] }
+                ],
+                baby: [
+                    { name: '果泥', calories: 60, protein: 0, carbs: 15, fat: 0, fiber: 1, tags: ['baby_friendly'] },
+                    { name: '米饼', calories: 40, protein: 1, carbs: 9, fat: 0, fiber: 0, tags: ['baby_friendly'] }
+                ],
+                pregnant: [
+                    { name: '核桃+红枣', calories: 180, protein: 4, carbs: 20, fat: 14, fiber: 3, tags: ['pregnancy', 'brain'] },
+                    { name: '无糖酸奶+蓝莓', calories: 130, protein: 8, carbs: 14, fat: 4, fiber: 2, tags: ['pregnancy', 'calcium'] },
+                    { name: '牛奶+燕麦饼干', calories: 180, protein: 8, carbs: 22, fat: 6, fiber: 2, tags: ['pregnancy'] }
+                ],
+                fitness: [
+                    { name: '蛋白棒', calories: 200, protein: 20, carbs: 22, fat: 7, fiber: 2, tags: ['high_protein'] },
+                    { name: '香蕉+花生酱', calories: 220, protein: 6, carbs: 28, fat: 12, fiber: 4, tags: ['energy'] },
+                    { name: '希腊酸奶+坚果', calories: 180, protein: 15, carbs: 12, fat: 10, fiber: 2, tags: ['high_protein'] }
+                ],
+                elderly: [
+                    { name: '核桃', calories: 100, protein: 2, carbs: 3, fat: 10, fiber: 1, tags: ['brain'] },
+                    { name: '酸奶', calories: 100, protein: 5, carbs: 12, fat: 3, fiber: 0, tags: ['digestive'] },
+                    { name: '蒸红枣', calories: 80, protein: 1, carbs: 18, fat: 0, fiber: 2, tags: ['tonic'] }
+                ],
+                vegetarian: [
+                    { name: '水果拼盘', calories: 100, protein: 1, carbs: 25, fat: 0, fiber: 4, tags: ['fruit'] },
+                    { name: '坚果+葡萄干', calories: 150, protein: 3, carbs: 18, fat: 8, fiber: 2, tags: ['energy'] }
+                ],
+                lowCarb: [
+                    { name: '奶酪块', calories: 100, protein: 7, carbs: 1, fat: 8, fiber: 0, tags: ['low_carb'] },
+                    { name: '煮鸡蛋', calories: 70, protein: 6, carbs: 0, fat: 5, fiber: 0, tags: ['low_carb'] }
+                ],
+                diabetic: [
+                    { name: '无糖酸奶', calories: 80, protein: 6, carbs: 8, fat: 3, fiber: 0, tags: ['low_gi'] },
+                    { name: '黄瓜条', calories: 20, protein: 1, carbs: 4, fat: 0, fiber: 1, tags: ['low_gi'] }
+                ]
+            }
+        };
+        
+        let selectedPeopleType = 'weight_loss';
+        let currentMealPlan = null;
+        let selectedDayIndex = 0;
+        let nutritionChart = null;
+        
+        function initPeopleTypes() {
+            const grid = document.getElementById('peopleTypeGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            for (const [key, type] of Object.entries(PEOPLE_TYPES)) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `people-type-btn p-2 border border-gray-300 rounded-lg text-center transition hover:border-purple-400 ${selectedPeopleType === key ? 'bg-purple-100 border-purple-400' : ''}`;
+                btn.innerHTML = `<div class="text-xl">${type.icon}</div><div class="text-xs">${type.name}</div>`;
+                btn.onclick = () => selectPeopleType(key);
+                grid.appendChild(btn);
+            }
+        }
+        
+        function selectPeopleType(type) {
+            selectedPeopleType = type;
+            document.querySelectorAll('.people-type-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-100', 'border-purple-400');
+            });
+            event.currentTarget.classList.add('bg-purple-100', 'border-purple-400');
+        }
+        
+        function calculateNutritionNeeds() {
+            const goal = getGoal();
+            const weight = getCurrentWeight() || 65;
+            const height = goal.height || 170;
+            const age = goal.age || 25;
+            const gender = goal.gender || 'male';
+            const peopleType = PEOPLE_TYPES[selectedPeopleType];
+            
+            // 基础代谢率 (Mifflin-St Jeor)
+            let bmr;
+            if (gender === 'male') {
+                bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+            } else {
+                bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+            }
+            
+            // 活动系数 (假设轻度活动)
+            let tdee = bmr * 1.375;
+            
+            // 根据人群类型调整
+            let targetCalories = tdee;
+            let targetProtein, targetCarbs, targetFat;
+            
+            if (peopleType.caloriesPerKg) {
+                // 婴幼儿
+                targetCalories = peopleType.caloriesPerKg * weight;
+                targetProtein = peopleType.proteinPerKg * weight;
+                targetCarbs = (targetCalories * 0.5) / 4;
+                targetFat = (targetCalories * 0.35) / 9;
+            } else if (peopleType.extraCalories) {
+                // 孕妇/哺乳期
+                targetCalories = tdee + peopleType.extraCalories;
+                targetProtein = weight * 0.9 + (peopleType.extraProtein || 0);
+                targetCarbs = (targetCalories * 0.5) / 4;
+                targetFat = (targetCalories * 0.3) / 9;
+            } else {
+                // 成年人
+                if (selectedPeopleType === 'weight_loss') {
+                    targetCalories = tdee - 500; // 减脂：热量缺口500
+                } else if (selectedPeopleType === 'muscle_gain') {
+                    targetCalories = tdee + 300; // 增肌：热量盈余300
+                } else if (selectedPeopleType === 'elderly' || selectedPeopleType === 'senior_health') {
+                    targetCalories = tdee - 200; // 老年人：略低于TDEE
+                }
+                
+                // 营养素比例
+                const proteinRatio = peopleType.proteinRatio || 0.25;
+                const carbsRatio = peopleType.carbsRatio || 0.5;
+                const fatRatio = peopleType.fatRatio || 0.25;
+                
+                targetProtein = (targetCalories * proteinRatio) / 4;
+                targetCarbs = (targetCalories * carbsRatio) / 4;
+                targetFat = (targetCalories * fatRatio) / 9;
+            }
+            
+            return {
+                calories: Math.round(targetCalories),
+                protein: Math.round(targetProtein),
+                carbs: Math.round(targetCarbs),
+                fat: Math.round(targetFat),
+                focus: peopleType.focus,
+                peopleTypeName: peopleType.name
+            };
+        }
+        
+        function getRecipeCategory() {
+            const preference = document.getElementById('dietPreference')?.value || 'normal';
+            const specialNeed = document.getElementById('specialNeed')?.value;
+            
+            // 特殊需求优先
+            if (specialNeed === 'diabetes') return 'diabetic';
+            if (selectedPeopleType === 'baby' || selectedPeopleType === 'toddler' || selectedPeopleType === 'child') return 'baby';
+            if (selectedPeopleType === 'pregnant' || selectedPeopleType === 'lactating') return 'pregnant';
+            if (selectedPeopleType === 'fitness' || selectedPeopleType === 'muscle_gain') return 'fitness';
+            if (selectedPeopleType === 'elderly' || selectedPeopleType === 'senior_health') return 'elderly';
+            if (preference === 'vegetarian') return 'vegetarian';
+            if (preference === 'lowCarb') return 'lowCarb';
+            
+            return 'normal';
+        }
+        
+        function generateMealPlan() {
+            const needs = calculateNutritionNeeds();
+            const category = getRecipeCategory();
+            
+            // 生成一周食谱
+            const weekPlan = [];
+            const usedRecipes = { breakfast: new Set(), lunch: new Set(), dinner: new Set(), snack: new Set() };
+            
+            for (let day = 0; day < 7; day++) {
+                const dayPlan = {
+                    dayIndex: day,
+                    meals: {
+                        breakfast: selectRecipe('breakfast', category, usedRecipes.breakfast),
+                        lunch: selectRecipe('lunch', category, usedRecipes.lunch),
+                        dinner: selectRecipe('dinner', category, usedRecipes.dinner),
+                        snack: selectRecipe('snack', category, usedRecipes.snack)
+                    }
+                };
+                
+                // 计算当日营养总计
+                dayPlan.totalCalories = Object.values(dayPlan.meals).reduce((sum, m) => sum + m.calories, 0);
+                dayPlan.totalProtein = Object.values(dayPlan.meals).reduce((sum, m) => sum + m.protein, 0);
+                dayPlan.totalCarbs = Object.values(dayPlan.meals).reduce((sum, m) => sum + m.carbs, 0);
+                dayPlan.totalFat = Object.values(dayPlan.meals).reduce((sum, m) => sum + m.fat, 0);
+                dayPlan.totalFiber = Object.values(dayPlan.meals).reduce((sum, m) => sum + m.fiber, 0);
+                
+                weekPlan.push(dayPlan);
+            }
+            
+            currentMealPlan = {
+                needs,
+                category,
+                weekPlan,
+                generatedAt: new Date().toISOString(),
+                peopleType: selectedPeopleType,
+                specialNeed: document.getElementById('specialNeed')?.value || '',
+                preference: document.getElementById('dietPreference')?.value || 'normal'
+            };
+            
+            // 保存到本地存储
+            localStorage.setItem('weight_tracker_meal_plan', JSON.stringify(currentMealPlan));
+            
+            // 显示食谱
+            renderMealPlan();
+            showToast('食谱生成成功！');
+        }
+        
+        function selectRecipe(mealType, category, usedSet) {
+            const recipes = RECIPE_DATABASE[mealType][category] || RECIPE_DATABASE[mealType]['normal'];
+            
+            // 尝试选择未使用的食谱
+            const available = recipes.filter((_, idx) => !usedSet.has(idx));
+            
+            if (available.length === 0) {
+                // 所有食谱都用过了，重置
+                usedSet.clear();
+                return selectRecipe(mealType, category, usedSet);
+            }
+            
+            const randomIndex = Math.floor(Math.random() * available.length);
+            const originalIndex = recipes.indexOf(available[randomIndex]);
+            usedSet.add(originalIndex);
+            
+            return { ...available[randomIndex] };
+        }
+        
+        function renderMealPlan() {
+            if (!currentMealPlan) {
+                const saved = localStorage.getItem('weight_tracker_meal_plan');
+                if (saved) {
+                    currentMealPlan = JSON.parse(saved);
+                } else {
+                    return;
+                }
+            }
+            
+            const container = document.getElementById('mealPlanContainer');
+            container.classList.remove('hidden');
+            
+            // 显示推荐热量
+            document.getElementById('recommendedCalories').textContent = currentMealPlan.needs.calories;
+            document.getElementById('nutritionGoalText').textContent = 
+                `适合${currentMealPlan.needs.peopleTypeName}，重点关注：${currentMealPlan.needs.focus}`;
+            
+            // 渲染日期选择器
+            renderDaySelector();
+            
+            // 渲染当日食谱
+            renderDailyMealPlan();
+            
+            // 渲染周统计
+            renderWeekStats();
+            
+            // 渲染营养师建议
+            renderNutritionistTips();
+        }
+        
+        function renderDaySelector() {
+            const selector = document.getElementById('daySelector');
+            const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            
+            selector.innerHTML = days.map((day, idx) => `
+                <button class="day-btn px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap
+                    ${idx === selectedDayIndex ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+                    onclick="selectDay(${idx})">
+                    ${day}
+                </button>
+            `).join('');
+        }
+        
+        function selectDay(idx) {
+            selectedDayIndex = idx;
+            renderDaySelector();
+            renderDailyMealPlan();
+        }
+        
+        function renderDailyMealPlan() {
+            const container = document.getElementById('dailyMealPlan');
+            const dayPlan = currentMealPlan.weekPlan[selectedDayIndex];
+            
+            const mealTypes = [
+                { key: 'breakfast', name: '早餐', icon: '🌅', color: 'yellow' },
+                { key: 'lunch', name: '午餐', icon: '☀️', color: 'orange' },
+                { key: 'dinner', name: '晚餐', icon: '🌙', color: 'purple' },
+                { key: 'snack', name: '加餐', icon: '🍎', color: 'green' }
+            ];
+            
+            container.innerHTML = mealTypes.map(meal => {
+                const recipe = dayPlan.meals[meal.key];
+                return `
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                        <div class="bg-gradient-to-r from-${meal.color}-50 to-${meal.color}-100 px-4 py-2 flex items-center gap-2">
+                            <span class="text-lg">${meal.icon}</span>
+                            <span class="font-medium text-gray-800">${meal.name}</span>
+                            <span class="ml-auto text-sm text-${meal.color}-600 font-medium">${recipe.calories} kcal</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="font-medium text-gray-800 mb-2">${recipe.name}</div>
+                            <div class="flex flex-wrap gap-3 text-xs text-gray-500">
+                                <span class="bg-red-50 text-red-600 px-2 py-1 rounded">蛋白 ${recipe.protein}g</span>
+                                <span class="bg-green-50 text-green-600 px-2 py-1 rounded">碳水 ${recipe.carbs}g</span>
+                                <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded">脂肪 ${recipe.fat}g</span>
+                                <span class="bg-yellow-50 text-yellow-600 px-2 py-1 rounded">纤维 ${recipe.fiber}g</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // 当日总计
+            container.innerHTML += `
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+                    <div class="text-center mb-2">
+                        <span class="text-sm text-gray-600">当日总计</span>
+                        <span class="text-2xl font-bold text-purple-600 ml-2">${dayPlan.totalCalories}</span>
+                        <span class="text-sm text-gray-600">kcal</span>
+                    </div>
+                    <div class="flex justify-center gap-4 text-xs">
+                        <span class="text-red-600">蛋白 ${dayPlan.totalProtein}g</span>
+                        <span class="text-green-600">碳水 ${dayPlan.totalCarbs}g</span>
+                        <span class="text-blue-600">脂肪 ${dayPlan.totalFat}g</span>
+                        <span class="text-yellow-600">纤维 ${dayPlan.totalFiber}g</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderWeekStats() {
+            const weekPlan = currentMealPlan.weekPlan;
+            
+            const avgCalories = Math.round(weekPlan.reduce((sum, d) => sum + d.totalCalories, 0) / 7);
+            const avgProtein = Math.round(weekPlan.reduce((sum, d) => sum + d.totalProtein, 0) / 7);
+            const avgCarbs = Math.round(weekPlan.reduce((sum, d) => sum + d.totalCarbs, 0) / 7);
+            const avgFat = Math.round(weekPlan.reduce((sum, d) => sum + d.totalFat, 0) / 7);
+            
+            document.getElementById('weekAvgCalories').textContent = avgCalories;
+            document.getElementById('weekAvgProtein').textContent = avgProtein;
+            document.getElementById('weekAvgCarbs').textContent = avgCarbs;
+            document.getElementById('weekAvgFat').textContent = avgFat;
+            
+            // 渲染图表
+            renderNutritionChart();
+        }
+        
+        function renderNutritionChart() {
+            const canvas = document.getElementById('nutritionChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const weekPlan = currentMealPlan.weekPlan;
+            const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            
+            if (nutritionChart) {
+                nutritionChart.destroy();
+            }
+            
+            nutritionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: '热量 (kcal/10)',
+                            data: weekPlan.map(d => d.totalCalories / 10),
+                            backgroundColor: 'rgba(249, 115, 22, 0.7)'
+                        },
+                        {
+                            label: '蛋白 (g)',
+                            data: weekPlan.map(d => d.totalProtein),
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)'
+                        },
+                        {
+                            label: '碳水 (g)',
+                            data: weekPlan.map(d => d.totalCarbs),
+                            backgroundColor: 'rgba(34, 197, 94, 0.7)'
+                        },
+                        {
+                            label: '脂肪 (g)',
+                            data: weekPlan.map(d => d.totalFat),
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { font: { size: 10 } }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: false },
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        
+        function renderNutritionistTips() {
+            const container = document.getElementById('nutritionistTips');
+            const needs = currentMealPlan.needs;
+            const specialNeed = currentMealPlan.specialNeed;
+            const preference = currentMealPlan.preference;
+            
+            let tips = [];
+            
+            // 人群特定建议
+            tips.push(`🎯 针对${needs.peopleTypeName}，每日建议摄入约 ${needs.calories} kcal 热量`);
+            tips.push(`💪 每日蛋白质目标：${needs.protein}g，碳水化合物：${needs.carbs}g，脂肪：${needs.fat}g`);
+            tips.push(`📌 重点关注：${needs.focus}`);
+            
+            // 特殊需求建议
+            if (specialNeed && SPECIAL_CONDITIONS[specialNeed]) {
+                const condition = SPECIAL_CONDITIONS[specialNeed];
+                tips.push(`\n⚕️ ${condition.name}饮食建议：`);
+                condition.tips.forEach(tip => tips.push(`   • ${tip}`));
+            }
+            
+            // 饮食偏好建议
+            if (preference === 'vegetarian') {
+                tips.push(`\n🥬 素食提示：注意补充维生素B12、铁和锌`);
+            } else if (preference === 'lowCarb') {
+                tips.push(`\n🍞 低碳水提示：确保摄入足够的蔬菜和优质蛋白`);
+            }
+            
+            // 通用建议
+            tips.push(`\n💡 通用建议：`);
+            tips.push(`   • 每天饮水 1.5-2L`);
+            tips.push(`   • 定时定量进餐，避免暴饮暴食`);
+            tips.push(`   • 细嚼慢咽，有助消化和饱腹感`);
+            tips.push(`   • 适当运动配合饮食效果更佳`);
+            
+            container.innerHTML = tips.map(tip => {
+                if (tip.startsWith('\n')) {
+                    return `<div class="mt-3 pt-3 border-t border-gray-100">${tip.substring(1)}</div>`;
+                }
+                return `<div>${tip}</div>`;
+            }).join('');
+        }
+        
+        function exportMealPlan() {
+            if (!currentMealPlan) {
+                showToast('请先生成食谱', 'error');
+                return;
+            }
+            
+            const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            let text = `一周营养食谱\n`;
+            text += `生成时间：${new Date().toLocaleDateString('zh-CN')}\n`;
+            text += `人群类型：${currentMealPlan.needs.peopleTypeName}\n`;
+            text += `每日推荐热量：${currentMealPlan.needs.calories} kcal\n\n`;
+            
+            currentMealPlan.weekPlan.forEach((day, idx) => {
+                text += `【${days[idx]}】\n`;
+                text += `🌅 早餐：${day.meals.breakfast.name} (${day.meals.breakfast.calories}kcal)\n`;
+                text += `☀️ 午餐：${day.meals.lunch.name} (${day.meals.lunch.calories}kcal)\n`;
+                text += `🌙 晚餐：${day.meals.dinner.name} (${day.meals.dinner.calories}kcal)\n`;
+                text += `🍎 加餐：${day.meals.snack.name} (${day.meals.snack.calories}kcal)\n`;
+                text += `   当日总计：${day.totalCalories}kcal\n\n`;
+            });
+            
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `meal-plan-${getToday()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('食谱已导出');
+        }
     </script>
 </body>
 </html>
