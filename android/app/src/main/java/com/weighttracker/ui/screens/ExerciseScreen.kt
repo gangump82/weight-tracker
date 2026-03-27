@@ -14,41 +14,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.weighttracker.data.model.Exercise
-import com.weighttracker.ui.viewmodel.ExerciseStats
 import com.weighttracker.ui.viewmodel.MainViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-val EXERCISE_TYPES = mapOf(
-    "running" to Pair("跑步", "🏃"),
-    "swimming" to Pair("游泳", "🏊"),
-    "cycling" to Pair("骑行", "🚴"),
-    "gym" to Pair("健身", "🏋️"),
-    "yoga" to Pair("瑜伽", "🧘"),
-    "walking" to Pair("步行", "🚶"),
-    "jumping" to Pair("跳绳", "⏫"),
-    "hiit" to Pair("HIIT", "⚡")
-)
-
-val CALORIES_PER_MIN = mapOf(
-    "running" to 10,
-    "swimming" to 8,
-    "cycling" to 7,
-    "gym" to 6,
-    "yoga" to 3,
-    "walking" to 4,
-    "jumping" to 12,
-    "hiit" to 14
+val EXERCISE_TYPES = listOf(
+    Triple("running", "跑步 🏃", 10),
+    Triple("swimming", "游泳 🏊", 8),
+    Triple("cycling", "骑行 🚴", 7),
+    Triple("gym", "健身 🏋️", 6),
+    Triple("yoga", "瑜伽 🧘", 3),
+    Triple("walking", "步行 🚶", 4),
+    Triple("jumping", "跳绳 ⏫", 12),
+    Triple("hiit", "HIIT ⚡", 14)
 )
 
 @Composable
 fun ExerciseScreen(viewModel: MainViewModel = viewModel()) {
     val exerciseStats by viewModel.exerciseStats.collectAsState()
-    val exercises by viewModel.exercises.collectAsState(initial = emptyList())
+    val exercises by viewModel.exercises.collectAsState()
     
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedType by remember { mutableStateOf("running") }
+    var selectedType by remember { mutableStateOf(EXERCISE_TYPES[0]) }
     var duration by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())) }
     
@@ -72,28 +59,12 @@ fun ExerciseScreen(viewModel: MainViewModel = viewModel()) {
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    StatItem("次数", "${exerciseStats.todayCount}")
-                    StatItem("时长", "${exerciseStats.todayMinutes}分钟")
-                    StatItem("消耗", "${exerciseStats.todayCalories}kcal")
-                }
-            }
-        }
-        
-        // Week Stats
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("📊 本周统计", fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatItem("运动次数", "${exerciseStats.weekCount}")
-                    StatItem("总时长", "${exerciseStats.weekMinutes}分钟")
-                    StatItem("总消耗", "${exerciseStats.weekCalories}kcal")
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("${exerciseStats.todayCalories}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF22C55E))
+                        Text("消耗 kcal", fontSize = 12.sp, color = Color.Gray)
+                    }
                 }
             }
         }
@@ -125,21 +96,12 @@ fun ExerciseScreen(viewModel: MainViewModel = viewModel()) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(EXERCISE_TYPES[exercise.type]?.second ?: "🏃", fontSize = 24.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(exercise.typeName, fontWeight = FontWeight.Medium)
-                                    Text("${exercise.date} · ${exercise.duration}分钟", fontSize = 12.sp, color = Color.Gray)
-                                }
+                            Column {
+                                Text(exercise.typeName, fontWeight = FontWeight.Medium)
+                                Text("${exercise.date} · ${exercise.duration}分钟", fontSize = 12.sp, color = Color.Gray)
                             }
                             
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("${exercise.calories} kcal", color = Color(0xFFF97316), fontWeight = FontWeight.Bold)
-                                IconButton(onClick = { viewModel.deleteExercise(exercise.id) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = Color.Red)
-                                }
-                            }
+                            Text("${exercise.calories} kcal", color = Color(0xFFF97316), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -164,18 +126,17 @@ fun ExerciseScreen(viewModel: MainViewModel = viewModel()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("运动类型", fontSize = 12.sp, color = Color.Gray)
                     
-                    // Exercise Type Grid
                     Column {
-                        EXERCISE_TYPES.entries.chunked(4).forEach { row ->
+                        EXERCISE_TYPES.chunked(4).forEach { row ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                row.forEach { (type, pair) ->
+                                row.forEach { (type, name, _) ->
                                     FilterChip(
-                                        selected = selectedType == type,
-                                        onClick = { selectedType = type },
-                                        label = { Text("${pair.second} ${pair.first}") },
+                                        selected = selectedType.first == type,
+                                        onClick = { selectedType = Triple(type, name, selectedType.third) },
+                                        label = { Text(name, fontSize = 10.sp) },
                                         modifier = Modifier.weight(1f)
                                     )
                                 }
@@ -193,9 +154,8 @@ fun ExerciseScreen(viewModel: MainViewModel = viewModel()) {
                         singleLine = true
                     )
                     
-                    // Auto-calculate calories
                     duration.toIntOrNull()?.let { mins ->
-                        val calories = mins * (CALORIES_PER_MIN[selectedType] ?: 5)
+                        val calories = mins * selectedType.third
                         Text("预计消耗: $calories kcal", fontSize = 12.sp, color = Color.Gray)
                     }
                 }
@@ -204,17 +164,14 @@ fun ExerciseScreen(viewModel: MainViewModel = viewModel()) {
                 Button(
                     onClick = {
                         duration.toIntOrNull()?.let { mins ->
-                            val calories = mins * (CALORIES_PER_MIN[selectedType] ?: 5)
-                            val typeInfo = EXERCISE_TYPES[selectedType]!!
+                            val calories = mins * selectedType.third
                             viewModel.addExercise(
-                                Exercise(
-                                    date = selectedDate,
-                                    type = selectedType,
-                                    typeName = typeInfo.first,
-                                    typeIcon = typeInfo.second,
-                                    duration = mins,
-                                    calories = calories
-                                )
+                                date = selectedDate,
+                                type = selectedType.first,
+                                typeName = selectedType.second,
+                                typeIcon = "",
+                                duration = mins,
+                                calories = calories
                             )
                             duration = ""
                             showAddDialog = false
@@ -230,13 +187,5 @@ fun ExerciseScreen(viewModel: MainViewModel = viewModel()) {
                 }
             }
         )
-    }
-}
-
-@Composable
-fun StatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        Text(label, fontSize = 12.sp, color = Color.Gray)
     }
 }

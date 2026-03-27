@@ -14,25 +14,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.weighttracker.data.model.Diet
 import com.weighttracker.ui.viewmodel.MainViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-val MEAL_TYPES = mapOf(
-    "breakfast" to Pair("早餐", "🌅"),
-    "lunch" to Pair("午餐", "☀️"),
-    "dinner" to Pair("晚餐", "🌙"),
-    "snack" to Pair("加餐", "🍎")
+val MEAL_TYPES = listOf(
+    Pair("breakfast", "早餐 🌅"),
+    Pair("lunch", "午餐 ☀️"),
+    Pair("dinner", "晚餐 🌙"),
+    Pair("snack", "加餐 🍎")
 )
 
 @Composable
 fun DietScreen(viewModel: MainViewModel = viewModel()) {
     val dietStats by viewModel.dietStats.collectAsState()
-    val diets by viewModel.diets.collectAsState(initial = emptyList())
+    val diets by viewModel.diets.collectAsState()
     
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedMealType by remember { mutableStateOf("breakfast") }
+    var selectedMealType by remember { mutableStateOf(MEAL_TYPES[0]) }
     var foodName by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())) }
@@ -61,24 +60,8 @@ fun DietScreen(viewModel: MainViewModel = viewModel()) {
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("${dietStats.todayCalories}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFFF97316))
-                        Text("总热量 (kcal)", fontSize = 12.sp, color = Color.Gray)
+                        Text("摄入 kcal", fontSize = 12.sp, color = Color.Gray)
                     }
-                }
-            }
-        }
-        
-        // Week Stats
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("📊 本周统计", fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatItem("总摄入", "${dietStats.weekCalories}kcal")
-                    StatItem("记录天数", "${dietStats.weekDays}天")
                 }
             }
         }
@@ -110,21 +93,12 @@ fun DietScreen(viewModel: MainViewModel = viewModel()) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(diet.mealIcon, fontSize = 24.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(diet.mealName, fontWeight = FontWeight.Medium)
-                                    Text(diet.date, fontSize = 12.sp, color = Color.Gray)
-                                }
+                            Column {
+                                Text(diet.mealName, fontWeight = FontWeight.Medium)
+                                Text(diet.date, fontSize = 12.sp, color = Color.Gray)
                             }
                             
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("${diet.calories} kcal", color = Color(0xFFF97316), fontWeight = FontWeight.Bold)
-                                IconButton(onClick = { viewModel.deleteDiet(diet.id) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = Color.Red)
-                                }
-                            }
+                            Text("${diet.calories} kcal", color = Color(0xFFF97316), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -153,11 +127,11 @@ fun DietScreen(viewModel: MainViewModel = viewModel()) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        MEAL_TYPES.entries.forEach { (type, pair) ->
+                        MEAL_TYPES.forEach { (type, name) ->
                             FilterChip(
-                                selected = selectedMealType == type,
-                                onClick = { selectedMealType = type },
-                                label = { Text("${pair.second} ${pair.first}") },
+                                selected = selectedMealType.first == type,
+                                onClick = { selectedMealType = Pair(type, name) },
+                                label = { Text(name, fontSize = 10.sp) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -186,16 +160,12 @@ fun DietScreen(viewModel: MainViewModel = viewModel()) {
                 Button(
                     onClick = {
                         calories.toIntOrNull()?.let { cals ->
-                            val mealInfo = MEAL_TYPES[selectedMealType]!!
                             viewModel.addDiet(
-                                Diet(
-                                    date = selectedDate,
-                                    mealType = selectedMealType,
-                                    mealName = foodName.ifEmpty { mealInfo.first },
-                                    mealIcon = mealInfo.second,
-                                    foods = foodName,
-                                    calories = cals
-                                )
+                                date = selectedDate,
+                                mealType = selectedMealType.first,
+                                mealName = foodName.ifEmpty { selectedMealType.second },
+                                mealIcon = "",
+                                calories = cals
                             )
                             foodName = ""
                             calories = ""

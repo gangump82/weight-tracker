@@ -19,7 +19,7 @@ fun StatsScreen(viewModel: MainViewModel = viewModel()) {
     val weightStats by viewModel.weightStats.collectAsState()
     val exerciseStats by viewModel.exerciseStats.collectAsState()
     val dietStats by viewModel.dietStats.collectAsState()
-    val weightRecords by viewModel.weightRecords.collectAsState(initial = emptyList())
+    val weightRecords by viewModel.weightRecords.collectAsState()
     
     Column(
         modifier = Modifier
@@ -39,8 +39,8 @@ fun StatsScreen(viewModel: MainViewModel = viewModel()) {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatItem("记录天数", "${weightRecords.size}")
-                    StatItem("总消耗", "${exerciseStats.weekCalories}kcal")
-                    StatItem("总摄入", "${dietStats.weekCalories}kcal")
+                    StatItem("今日消耗", "${exerciseStats.todayCalories}kcal")
+                    StatItem("今日摄入", "${dietStats.todayCalories}kcal")
                 }
             }
         }
@@ -51,73 +51,35 @@ fun StatsScreen(viewModel: MainViewModel = viewModel()) {
                 Text("⚖️ 体重进度", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                weightStats.startWeight?.let { start ->
-                    weightStats.currentWeight?.let { current ->
-                        weightStats.targetWeight?.let { target ->
-                            val totalToLose = start - target
-                            val lost = start - current
-                            val progress = if (totalToLose > 0) (lost / totalToLose).toFloat().coerceIn(0f, 1f) else 0f
-                            
-                            LinearProgressIndicator(
-                                progress = progress,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                            )
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("起始: ${String.format("%.1f", start)}kg", fontSize = 12.sp, color = Color.Gray)
-                                Text("当前: ${String.format("%.1f", current)}kg", fontSize = 12.sp, color = Color.Gray)
-                                Text("目标: ${String.format("%.1f", target)}kg", fontSize = 12.sp, color = Color.Gray)
-                            }
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("完成度: ${(progress * 100).toInt()}%", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        }
+                if (weightStats.startWeight != null && weightStats.targetWeight != null && weightStats.currentWeight != null) {
+                    val totalToLose = weightStats.startWeight!! - weightStats.targetWeight!!
+                    val lost = weightStats.startWeight!! - weightStats.currentWeight!!
+                    val progress = if (totalToLose > 0) (lost / totalToLose).toFloat().coerceIn(0f, 1f) else 0f
+                    
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("起始: ${String.format("%.1f", weightStats.startWeight!!)}kg", fontSize = 12.sp, color = Color.Gray)
+                        Text("当前: ${String.format("%.1f", weightStats.currentWeight!!)}kg", fontSize = 12.sp, color = Color.Gray)
+                        Text("目标: ${String.format("%.1f", weightStats.targetWeight!!)}kg", fontSize = 12.sp, color = Color.Gray)
                     }
-                } ?: run {
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("完成度: ${(progress * 100).toInt()}%", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                } else {
                     Text("请先设置目标体重", color = Color.Gray)
-                }
-            }
-        }
-        
-        // Exercise Summary
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("🏃 运动概览", fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatItem("本周次数", "${exerciseStats.weekCount}")
-                    StatItem("本周时长", "${exerciseStats.weekMinutes}分钟")
-                    StatItem("本周消耗", "${exerciseStats.weekCalories}kcal")
-                }
-            }
-        }
-        
-        // Diet Summary
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("🥗 饮食概览", fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatItem("本周摄入", "${dietStats.weekCalories}kcal")
-                    StatItem("日均摄入", if (dietStats.weekDays > 0) "${dietStats.weekCalories / dietStats.weekDays}kcal" else "--")
-                    StatItem("记录天数", "${dietStats.weekDays}天")
                 }
             }
         }
@@ -125,15 +87,43 @@ fun StatsScreen(viewModel: MainViewModel = viewModel()) {
         // Calorie Balance
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("⚖️ 热量平衡", fontWeight = FontWeight.Bold)
+                Text("⚖️ 今日热量平衡", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 val netCalories = dietStats.todayCalories - exerciseStats.todayCalories
-                val balanceText = if (netCalories > 0) "摄入 $netCalories kcal" else "消耗 ${-netCalories} kcal"
-                val balanceColor = if (netCalories > 0) Color(0xFFF97316) else Color(0xFF22C55E)
                 
-                Text("今日净热量: $balanceText", color = balanceColor, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("${dietStats.todayCalories}", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFFF97316))
+                        Text("摄入", fontSize = 12.sp, color = Color.Gray)
+                    }
+                    
+                    Text("-", fontSize = 24.sp)
+                    
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("${exerciseStats.todayCalories}", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF22C55E))
+                        Text("消耗", fontSize = 12.sp, color = Color.Gray)
+                    }
+                    
+                    Text("=", fontSize = 24.sp)
+                    
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("$netCalories", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = if (netCalories > 0) Color.Red else Color.Blue)
+                        Text("净热量", fontSize = 12.sp, color = Color.Gray)
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+fun StatItem(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        Text(label, fontSize = 12.sp, color = Color.Gray)
     }
 }

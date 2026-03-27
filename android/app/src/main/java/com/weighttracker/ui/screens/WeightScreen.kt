@@ -2,7 +2,6 @@ package com.weighttracker.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -10,22 +9,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.weighttracker.ui.viewmodel.MainViewModel
-import com.weighttracker.ui.viewmodel.WeightStats
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
 fun WeightScreen(viewModel: MainViewModel = viewModel()) {
     val weightStats by viewModel.weightStats.collectAsState()
-    val weightRecords by viewModel.weightRecords.collectAsState(initial = emptyList())
-    val checkIns by viewModel.checkIns.collectAsState(initial = emptyList())
+    val weightRecords by viewModel.weightRecords.collectAsState()
+    val checkIns by viewModel.checkIns.collectAsState()
     
     var showAddDialog by remember { mutableStateOf(false) }
     var newWeight by remember { mutableStateOf("") }
@@ -95,13 +92,13 @@ fun WeightScreen(viewModel: MainViewModel = viewModel()) {
             StatCard(
                 modifier = Modifier.weight(1f),
                 title = "当前体重",
-                value = weightStats.currentWeight?.let { "${it}kg" } ?: "--",
+                value = weightStats.currentWeight?.let { "${String.format("%.1f", it)}kg" } ?: "--",
                 color = Color(0xFF8B5CF6)
             )
             StatCard(
                 modifier = Modifier.weight(1f),
                 title = "目标体重",
-                value = weightStats.targetWeight?.let { "${it}kg" } ?: "--",
+                value = weightStats.targetWeight?.let { "${String.format("%.1f", it)}kg" } ?: "--",
                 color = Color(0xFF22C55E)
             )
         }
@@ -121,61 +118,6 @@ fun WeightScreen(viewModel: MainViewModel = viewModel()) {
                 title = "BMI",
                 value = weightStats.bmi?.let { String.format("%.1f", it) } ?: "--",
                 color = Color(0xFFF97316)
-            )
-        }
-        
-        // Progress Section
-        if (weightStats.targetWeight != null && weightStats.startWeight != null) {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("📊 减重进度", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    val totalToLose = weightStats.startWeight!! - weightStats.targetWeight!!
-                    val lost = weightStats.startWeight!! - (weightStats.currentWeight ?: weightStats.startWeight!!)
-                    val progress = if (totalToLose > 0) (lost / totalToLose).toFloat().coerceIn(0f, 1f) else 0f
-                    
-                    LinearProgressIndicator(
-                        progress = progress,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("起始: ${weightStats.startWeight}kg", fontSize = 12.sp, color = Color.Gray)
-                        Text("${(progress * 100).toInt()}%", fontWeight = FontWeight.Bold)
-                        Text("目标: ${weightStats.targetWeight}kg", fontSize = 12.sp, color = Color.Gray)
-                    }
-                }
-            }
-        }
-        
-        // Week/Month Stats
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            StatCard(
-                modifier = Modifier.weight(1f),
-                title = "本周减重",
-                value = "${String.format("%.1f", weightStats.weekLost)}kg",
-                color = Color(0xFF22C55E),
-                small = true
-            )
-            StatCard(
-                modifier = Modifier.weight(1f),
-                title = "本月减重",
-                value = "${String.format("%.1f", weightStats.monthLost)}kg",
-                color = Color(0xFF3B82F6),
-                small = true
             )
         }
         
@@ -205,7 +147,7 @@ fun WeightScreen(viewModel: MainViewModel = viewModel()) {
                                 .padding(vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("${record.weight}kg")
+                            Text("${String.format("%.1f", record.weight)}kg")
                             Text(record.date, color = Color.Gray, fontSize = 12.sp)
                         }
                     }

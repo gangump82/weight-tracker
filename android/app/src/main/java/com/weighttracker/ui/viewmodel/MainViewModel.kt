@@ -3,14 +3,26 @@ package com.weighttracker.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
-import com.weighttracker.data.database.AppDatabase
-import com.weighttracker.data.model.*
-import com.weighttracker.data.repository.WeightRepository
+import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
 import java.util.*
+
+@Serializable
+data class WeightRecord(val date: String, val weight: Double)
+@Serializable
+data class CheckIn(val date: String)
+@Serializable
+data class ExerciseRecord(val date: String, val type: String, val typeName: String, val typeIcon: String, val duration: Int, val calories: Int)
+@Serializable
+data class DietRecord(val date: String, val mealType: String, val mealName: String, val mealIcon: String, val calories: Int)
+
+private val Application.dataStore by preferencesDataStore(name = "weight_tracker")
 
 data class WeightStats(
     val currentWeight: Double? = null,
@@ -18,238 +30,221 @@ data class WeightStats(
     val targetWeight: Double? = null,
     val weightLost: Double = 0.0,
     val bmi: Double? = null,
-    val weekLost: Double = 0.0,
-    val monthLost: Double = 0.0,
     val streakDays: Int = 0
 )
 
 data class ExerciseStats(
-    val todayCount: Int = 0,
-    val todayMinutes: Int = 0,
     val todayCalories: Int = 0,
-    val weekCount: Int = 0,
-    val weekMinutes: Int = 0,
     val weekCalories: Int = 0
 )
 
 data class DietStats(
     val todayCalories: Int = 0,
-    val weekCalories: Int = 0,
-    val weekDays: Int = 0
+    val weekCalories: Int = 0
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     
-    private val db = Room.databaseBuilder(
-        application,
-        AppDatabase::class.java,
-        "weight_tracker_db"
-    ).build()
+    private val dataStore = application.dataStore
     
-    private val repository = WeightRepository(
-        db.weightRecordDao(),
-        db.checkInDao(),
-        db.exerciseDao(),
-        db.dietDao(),
-        db.mealPlanDao()
-    )
+    // Keys
+    private val weightRecordsKey = stringPreferencesKey("weight_records")
+    private val checkInsKey = stringPreferencesKey("check_ins")
+    private val exercisesKey = stringPreferencesKey("exercises")
+    private val dietsKey = stringPreferencesKey("diets")
+    private val targetWeightKey = doublePreferencesKey("target_weight")
+    private val heightKey = intPreferencesKey("height")
     
-    // User Goal (stored in DataStore)
-    private val _userGoal = MutableStateFlow(UserGoal())
-    val userGoal: StateFlow<UserGoal> = _userGoal.asStateFlow()
+    // State
+    private val _weightRecords = MutableStateFlow<List<WeightRecord>>(emptyList())
+    private val _checkIns = MutableStateFlow<List<CheckIn>>(emptyList())
+    private val _exercises = MutableStateFlow<List<ExerciseRecord>>(emptyList())
+    private val _diets = MutableStateFlow<List<DietRecord>>(emptyList())
+    private val _targetWeight = MutableStateFlow<Double?>(null)
+    private val _height = MutableStateFlow<Int?>(null)
     
-    // Weight Records
-    val weightRecords: Flow<List<WeightRecord>> = repository.getAllWeightRecordsAscending()
+    val weightStats: StateFlow<WeightStats> = combine(_weightRecords, _checkIns, _targetWeight, _height) { records, checkIns, target, height ->
+        val current = records.maxByOrNull { it.date }?.weight
+        val start = records.minByOrNull { it.date }?.weight
+        val bmi = if (height != null && current != null) {
+            val h = height / 100.0
+            current / (h * h)
+        } else null
+        
+        val today = getToday()
+        val sorted = checkIns.map { it.date }.sortedDescending()
+        var streak = 0
+        var checkDate = Calendar.getInstance()
+        checkDate.set(Calendar.HOUR_OF_DAY, 0)
+        checkDate.set(Calendar.MINUTE, 0)
+        checkDate.set(Calendar.SECOND, 0)
+        checkDate.set(Calendar.MILLISECOND, 0)
+        
+        for (i in sorted.indices) {
+            val expected = formatDate(checkDate.time)
+            if (sorted.contains(expected)) {
+                streak++
+                checkDate.add(Calendar.DAY_OF_YEAR, -1)
+            } else break
+        }
+        
+        WeightStats(
+            currentWeight = current,
+            startWeight = start,
+            targetWeight = target,
+            weightLost = if (start != null && current != null) start - current else 0.0,
+            bmi = bmi,
+            streakDays = streak
+        )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, WeightStats())
     
-    // Check-ins
-    val checkIns: Flow<List<CheckIn>> = repository.getAllCheckIns()
+    val exerciseStats: StateFlow<ExerciseStats> = _exercises.map { list ->
+        val today = getToday()
+        val todayCalories = list.filter { it.date == today }.sumOf { it.calories }
+        val weekCalories = list.filter { isThisWeek(it.date) }.sumOf { it.calories }
+        ExerciseStats(todayCalories, weekCalories)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, ExerciseStats())
     
-    // Exercises
-    val exercises: Flow<List<Exercise>> = repository.getAllExercises()
+    val dietStats: StateFlow<DietStats> = _diets.map { list ->
+        val today = getToday()
+        val todayCalories = list.filter { it.date == today }.sumOf { it.calories }
+        val weekCalories = list.filter { isThisWeek(it.date) }.sumOf { it.calories }
+        DietStats(todayCalories, weekCalories)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, DietStats())
     
-    // Diets
-    val diets: Flow<List<Diet>> = repository.getAllDiets()
-    
-    // Stats
-    private val _weightStats = MutableStateFlow(WeightStats())
-    val weightStats: StateFlow<WeightStats> = _weightStats.asStateFlow()
-    
-    private val _exerciseStats = MutableStateFlow(ExerciseStats())
-    val exerciseStats: StateFlow<ExerciseStats> = _exerciseStats.asStateFlow()
-    
-    private val _dietStats = MutableStateFlow(DietStats())
-    val dietStats: StateFlow<DietStats> = _dietStats.asStateFlow()
-    
-    // Today's data
-    val todayExercises: Flow<List<Exercise>> = repository.getExercisesByDate(WeightRepository.getToday())
-    val todayDiets: Flow<List<Diet>> = repository.getDietsByDate(WeightRepository.getToday())
+    val weightRecords: StateFlow<List<WeightRecord>> = _weightRecords.asStateFlow()
+    val exercises: StateFlow<List<ExerciseRecord>> = _exercises.asStateFlow()
+    val diets: StateFlow<List<DietRecord>> = _diets.asStateFlow()
+    val checkIns: StateFlow<List<CheckIn>> = _checkIns.asStateFlow()
     
     init {
-        calculateStats()
+        loadData()
     }
     
-    private fun calculateStats() {
+    private fun loadData() {
         viewModelScope.launch {
-            // Weight stats
-            weightRecords.collect { records ->
-                if (records.isNotEmpty()) {
-                    val current = records.last().weight
-                    val start = records.first().weight
-                    val target = _userGoal.value.targetWeight
-                    
-                    // Calculate week/month loss
-                    val calendar = Calendar.getInstance()
-                    calendar.add(Calendar.DAY_OF_YEAR, -7)
-                    val weekAgo = WeightRepository.formatDate(calendar.time)
-                    val weekRecords = records.filter { it.date >= weekAgo }
-                    val weekLost = if (weekRecords.size >= 2) weekRecords.first().weight - weekRecords.last().weight else 0.0
-                    
-                    calendar.time = Date()
-                    calendar.add(Calendar.MONTH, -1)
-                    val monthAgo = WeightRepository.formatDate(calendar.time)
-                    val monthRecords = records.filter { it.date >= monthAgo }
-                    val monthLost = if (monthRecords.size >= 2) monthRecords.first().weight - monthRecords.last().weight else 0.0
-                    
-                    // Calculate BMI
-                    val height = _userGoal.value.height
-                    val bmi = if (height != null) {
-                        val heightM = height / 100.0
-                        current / (heightM * heightM)
-                    } else null
-                    
-                    _weightStats.value = WeightStats(
-                        currentWeight = current,
-                        startWeight = start,
-                        targetWeight = target,
-                        weightLost = start - current,
-                        bmi = bmi,
-                        weekLost = weekLost,
-                        monthLost = monthLost,
-                        streakDays = calculateStreak()
-                    )
+            dataStore.data.collect { prefs ->
+                prefs[weightRecordsKey]?.let { json ->
+                    _weightRecords.value = Json.decodeFromString(json)
                 }
-            }
-        }
-        
-        viewModelScope.launch {
-            exercises.collect { allExercises ->
-                val today = WeightRepository.getToday()
-                val todayList = allExercises.filter { it.date == today }
-                
-                val calendar = Calendar.getInstance()
-                calendar.add(Calendar.DAY_OF_YEAR, -7)
-                val weekAgo = WeightRepository.formatDate(calendar.time)
-                val weekList = allExercises.filter { it.date >= weekAgo }
-                
-                _exerciseStats.value = ExerciseStats(
-                    todayCount = todayList.size,
-                    todayMinutes = todayList.sumOf { it.duration },
-                    todayCalories = todayList.sumOf { it.calories },
-                    weekCount = weekList.size,
-                    weekMinutes = weekList.sumOf { it.duration },
-                    weekCalories = weekList.sumOf { it.calories }
-                )
-            }
-        }
-        
-        viewModelScope.launch {
-            diets.collect { allDiets ->
-                val today = WeightRepository.getToday()
-                val todayList = allDiets.filter { it.date == today }
-                
-                val calendar = Calendar.getInstance()
-                calendar.add(Calendar.DAY_OF_YEAR, -7)
-                val weekAgo = WeightRepository.formatDate(calendar.time)
-                val weekList = allDiets.filter { it.date >= weekAgo }
-                
-                _dietStats.value = DietStats(
-                    todayCalories = todayList.sumOf { it.calories },
-                    weekCalories = weekList.sumOf { it.calories },
-                    weekDays = weekList.map { it.date }.distinct().size
-                )
+                prefs[checkInsKey]?.let { json ->
+                    _checkIns.value = Json.decodeFromString(json)
+                }
+                prefs[exercisesKey]?.let { json ->
+                    _exercises.value = Json.decodeFromString(json)
+                }
+                prefs[dietsKey]?.let { json ->
+                    _diets.value = Json.decodeFromString(json)
+                }
+                _targetWeight.value = prefs[targetWeightKey]
+                _height.value = prefs[heightKey]
             }
         }
     }
     
-    private suspend fun calculateStreak(): Int {
-        val checkInList = checkIns.first()
-        if (checkInList.isEmpty()) return 0
-        
-        val sortedDates = checkInList.map { it.date }.sortedDescending()
-        var streak = 0
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        
-        for (i in sortedDates.indices) {
-            val expectedDate = WeightRepository.formatDate(calendar.time)
-            if (sortedDates.contains(expectedDate)) {
-                streak++
-                calendar.add(Calendar.DAY_OF_YEAR, -1)
-            } else {
-                break
-            }
+    private suspend fun saveData() {
+        dataStore.edit { prefs ->
+            prefs[weightRecordsKey] = Json.encodeToString(_weightRecords.value)
+            prefs[checkInsKey] = Json.encodeToString(_checkIns.value)
+            prefs[exercisesKey] = Json.encodeToString(_exercises.value)
+            prefs[dietsKey] = Json.encodeToString(_diets.value)
+            _targetWeight.value?.let { prefs[targetWeightKey] = it }
+            _height.value?.let { prefs[heightKey] = it }
         }
-        
-        return streak
     }
     
-    // Weight operations
+    fun getToday(): String = formatDate(Date())
+    
+    fun formatDate(date: Date): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return sdf.format(date)
+    }
+    
+    private fun isThisWeek(dateStr: String): Boolean {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val date = sdf.parse(dateStr) ?: return false
+        val cal = Calendar.getInstance()
+        val weekStart = cal.apply { set(Calendar.DAY_OF_WEEK, Calendar.MONDAY); set(Calendar.HOUR_OF_DAY, 0) }.time
+        val weekEnd = cal.apply { add(Calendar.DAY_OF_YEAR, 7) }.time
+        return date in weekStart..weekEnd
+    }
+    
     fun addWeightRecord(date: String, weight: Double) {
         viewModelScope.launch {
-            repository.insertWeightRecord(WeightRecord(date, weight))
+            val list = _weightRecords.value.toMutableList()
+            list.removeAll { it.date == date }
+            list.add(WeightRecord(date, weight))
+            _weightRecords.value = list.sortedBy { it.date }
+            saveData()
         }
     }
     
     fun deleteWeightRecord(date: String) {
         viewModelScope.launch {
-            repository.deleteWeightRecord(date)
+            _weightRecords.value = _weightRecords.value.filter { it.date != date }
+            saveData()
         }
     }
     
-    // Check-in operations
     fun toggleCheckIn() {
         viewModelScope.launch {
-            val today = WeightRepository.getToday()
-            val existing = repository.getCheckInByDate(today)
-            if (existing != null) {
-                repository.deleteCheckIn(existing)
+            val today = getToday()
+            val list = _checkIns.value.toMutableList()
+            if (list.any { it.date == today }) {
+                list.removeAll { it.date == today }
             } else {
-                repository.insertCheckIn(CheckIn(today))
+                list.add(CheckIn(today))
             }
+            _checkIns.value = list
+            saveData()
         }
     }
     
-    // Exercise operations
-    fun addExercise(exercise: Exercise) {
+    fun isCheckedInToday(): Boolean = _checkIns.value.any { it.date == getToday() }
+    
+    fun addExercise(date: String, type: String, typeName: String, typeIcon: String, duration: Int, calories: Int) {
         viewModelScope.launch {
-            repository.insertExercise(exercise)
+            val list = _exercises.value.toMutableList()
+            list.add(ExerciseRecord(date, type, typeName, typeIcon, duration, calories))
+            _exercises.value = list
+            saveData()
         }
     }
     
-    fun deleteExercise(id: Long) {
+    fun deleteExercise(date: String, type: String) {
         viewModelScope.launch {
-            repository.deleteExercise(id)
+            _exercises.value = _exercises.value.filterNot { it.date == date && it.type == type }
+            saveData()
         }
     }
     
-    // Diet operations
-    fun addDiet(diet: Diet) {
+    fun addDiet(date: String, mealType: String, mealName: String, mealIcon: String, calories: Int) {
         viewModelScope.launch {
-            repository.insertDiet(diet)
+            val list = _diets.value.toMutableList()
+            list.add(DietRecord(date, mealType, mealName, mealIcon, calories))
+            _diets.value = list
+            saveData()
         }
     }
     
-    fun deleteDiet(id: Long) {
+    fun deleteDiet(date: String, mealType: String) {
         viewModelScope.launch {
-            repository.deleteDiet(id)
+            _diets.value = _diets.value.filterNot { it.date == date && it.mealType == mealType }
+            saveData()
         }
     }
     
-    // User Goal
-    fun setUserGoal(goal: UserGoal) {
-        _userGoal.value = goal
+    fun setTargetWeight(weight: Double) {
+        viewModelScope.launch {
+            _targetWeight.value = weight
+            saveData()
+        }
+    }
+    
+    fun setHeight(height: Int) {
+        viewModelScope.launch {
+            _height.value = height
+            saveData()
+        }
     }
 }
