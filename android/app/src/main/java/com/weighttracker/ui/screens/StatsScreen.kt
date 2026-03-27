@@ -59,9 +59,7 @@ fun StatsScreen(viewModel: MainViewModel = viewModel()) {
                         progress = progress,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(8.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            .height(8.dp)
                     )
                     
                     Spacer(modifier = Modifier.height(8.dp))
