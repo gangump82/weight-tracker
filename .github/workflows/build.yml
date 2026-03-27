@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -18,21 +19,32 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
     
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
     
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew || true
-      working-directory: android
-    
     - name: Build Debug APK
-      run: ./gradlew assembleDebug || gradle assembleDebug
-      working-directory: android
+      run: |
+        cd android
+        chmod +x gradlew || true
+        ./gradlew assembleDebug --no-daemon
     
-    - name: Upload APK
+    - name: Rename APK
+      run: |
+        mv android/app/build/outputs/apk/debug/app-debug.apk weight-tracker-android.apk || true
+    
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: weight-tracker-debug
-        path: android/app/build/outputs/apk/debug/*.apk
+        name: weight-tracker-android
+        path: weight-tracker-android.apk
+    
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        name: Build ${{ github.run_number }}
+        files: weight-tracker-android.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
