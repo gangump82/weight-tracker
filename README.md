@@ -2,12 +2,43 @@
 
 一个全平台的体重追踪和营养管理应用。
 
-## 项目结构
+## 🌟 项目结构
 
 ```
-├── index.html              # Web 应用入口
-├── android/                # Android 应用 (Kotlin + Jetpack Compose)
-└── ios/                    # iOS 应用 (Swift + SwiftUI)
+weight-tracker/
+├── index.html          # Web 应用 (在线可访问)
+├── android/            # Android 原生应用 (Kotlin + Jetpack Compose)
+├── ios/                # iOS 原生应用 (Swift + SwiftUI)
+└── flutter/            # Flutter 跨平台应用 ⭐ 推荐
+```
+
+## 🦋 Flutter 版本（推荐）
+
+**一套代码，同时生成 Android、iOS、Web 三端应用！**
+
+### 优势
+
+| 特性 | Flutter | 原生 Android | 原生 iOS |
+|------|---------|-------------|----------|
+| 代码共享 | ✅ 100% | ❌ 单独代码 | ❌ 单独代码 |
+| 维护成本 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| 开发效率 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| 性能 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+
+### 快速开始
+
+```bash
+cd flutter
+flutter pub get
+flutter run
+```
+
+### 构建
+
+```bash
+flutter build apk --release    # Android
+flutter build ios --release    # iOS (需要 macOS)
+flutter build web --release    # Web
 ```
 
 ## 功能特性
@@ -45,32 +76,53 @@ Web 版本: https://gangump82.github.io/weight-tracker/
 
 ## 技术栈
 
-| 平台 | 技术栈 |
-|------|--------|
-| Web | HTML5 + TailwindCSS + Chart.js |
-| Android | Kotlin + Jetpack Compose + Room |
-| iOS | Swift + SwiftUI |
+| 平台 | 框架 | 语言 |
+|------|------|------|
+| **Flutter** ⭐ | Flutter 3.16+ | Dart |
+| Web | HTML5 + TailwindCSS | JavaScript |
+| Android 原生 | Jetpack Compose | Kotlin |
+| iOS 原生 | SwiftUI | Swift |
 
 ## 本地开发
 
+### Flutter（推荐）
+
+```bash
+cd flutter
+flutter pub get
+flutter run -d chrome    # Web
+flutter run -d android   # Android 模拟器
+flutter run -d ios       # iOS 模拟器
+```
+
 ### Web
+
 ```bash
 # 用浏览器打开 index.html 即可
 open index.html
 ```
 
-### Android
+### Android 原生
+
 ```bash
 cd android
 ./gradlew assembleDebug
-# APK 位于 app/build/outputs/apk/debug/
+# APK 在 app/build/outputs/apk/debug/
 ```
 
-### iOS
+### iOS 原生
+
 ```bash
 # 用 Xcode 打开
 open ios/WeightTracker.xcworkspace
 ```
+
+## 自动构建
+
+推送到 main 分支后，GitHub Actions 会自动构建：
+- Flutter Android APK
+- Flutter iOS App
+- Web 部署到 GitHub Pages
 
 ## License
 
