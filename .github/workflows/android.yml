@@ -30,11 +30,12 @@ jobs:
     - name: Build Debug APK
       run: |
         cd android
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --info 2>&1 | tail -100
       
     - name: Upload APK
       uses: actions/upload-artifact@v4
+      if: success()
       with:
-        name: weight-tracker-android
+        name: app-debug
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
