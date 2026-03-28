@@ -9,37 +9,51 @@ weight-tracker/
 ├── index.html          # Web 应用 (在线可访问)
 ├── android/            # Android 原生应用 (Kotlin + Jetpack Compose)
 ├── ios/                # iOS 原生应用 (Swift + SwiftUI)
-└── flutter/            # Flutter 跨平台应用 ⭐ 推荐
+├── flutter/            # Flutter 跨平台应用 ⭐ 推荐
+└── wardrobe-manager/   # 衣橱管家应用 🆕
 ```
 
-## 🦋 Flutter 版本（推荐）
+---
+
+## 🆕 衣橱管家 (Wardrobe Manager)
+
+**智能衣物管理与穿搭助手**
+
+### 核心功能
+
+| 功能 | 描述 | 亮点 |
+|------|------|------|
+| 📸 **拍照录入** | 拍照即录入，AI 自动识别 | 10秒/件 |
+| 🏠 **衣柜扫描** | 拍摄整个衣柜，AI 自动分析 | 5分钟/50件 |
+| 🤖 **AI 搭配** | 语音描述需求，生成搭配方案 | 解放双手 |
+| 📍 **位置管理** | 标记衣服位置，快速查找 | 不再翻箱倒柜 |
+
+### 快速开始
+
+```bash
+cd wardrobe-manager
+flutter pub get
+flutter run
+```
+
+详细文档见 [wardrobe-manager/PRODUCT.md](wardrobe-manager/PRODUCT.md)
+
+---
+
+## 🦋 Flutter 减肥记录
 
 **一套代码，同时生成 Android、iOS、Web 三端应用！**
-
-### 优势
-
-| 特性 | Flutter | 原生 Android | 原生 iOS |
-|------|---------|-------------|----------|
-| 代码共享 | ✅ 100% | ❌ 单独代码 | ❌ 单独代码 |
-| 维护成本 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| 开发效率 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| 性能 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 
 ### 快速开始
 
 ```bash
 cd flutter
 flutter pub get
-flutter run
+flutter run -d chrome    # Web
+flutter build apk        # Android
 ```
 
-### 构建
-
-```bash
-flutter build apk --release    # Android
-flutter build ios --release    # iOS (需要 macOS)
-flutter build web --release    # Web
-```
+---
 
 ## 功能特性
 
@@ -47,28 +61,20 @@ flutter build web --release    # Web
 - 每日体重记录
 - 打卡系统和连续天数统计
 - 体重趋势图表
-- 减重进度追踪
 
 ### 🏃 运动记录
-- 8 种运动类型（跑步、游泳、骑行等）
+- 8 种运动类型
 - 自动计算消耗热量
-- 本周/本月运动统计
 
 ### 🥗 饮食记录
-- 四餐记录（早餐、午餐、晚餐、加餐）
+- 四餐记录
 - 热量统计
-- 本周饮食分析
 
 ### 👨‍⚕️ 营养师功能
-- 12 种人群类型（婴儿、孕妇、健身人士、中老年人等）
-- 特殊需求支持（糖尿病、高血压、痛风等）
+- 12 种人群类型
 - 一周食谱自动生成
-- 营养分析和建议
 
-### 📊 统计分析
-- 综合数据统计
-- 热量平衡分析
-- 目标进度展示
+---
 
 ## 在线访问
 
@@ -76,53 +82,13 @@ Web 版本: https://gangump82.github.io/weight-tracker/
 
 ## 技术栈
 
-| 平台 | 框架 | 语言 |
+| 项目 | 框架 | 语言 |
 |------|------|------|
-| **Flutter** ⭐ | Flutter 3.16+ | Dart |
+| **减肥记录 Flutter** | Flutter 3.16+ | Dart |
+| **衣橱管家** | Flutter 3.16+ | Dart |
 | Web | HTML5 + TailwindCSS | JavaScript |
 | Android 原生 | Jetpack Compose | Kotlin |
 | iOS 原生 | SwiftUI | Swift |
-
-## 本地开发
-
-### Flutter（推荐）
-
-```bash
-cd flutter
-flutter pub get
-flutter run -d chrome    # Web
-flutter run -d android   # Android 模拟器
-flutter run -d ios       # iOS 模拟器
-```
-
-### Web
-
-```bash
-# 用浏览器打开 index.html 即可
-open index.html
-```
-
-### Android 原生
-
-```bash
-cd android
-./gradlew assembleDebug
-# APK 在 app/build/outputs/apk/debug/
-```
-
-### iOS 原生
-
-```bash
-# 用 Xcode 打开
-open ios/WeightTracker.xcworkspace
-```
-
-## 自动构建
-
-推送到 main 分支后，GitHub Actions 会自动构建：
-- Flutter Android APK
-- Flutter iOS App
-- Web 部署到 GitHub Pages
 
 ## License
 
