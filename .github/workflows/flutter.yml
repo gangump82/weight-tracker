@@ -22,24 +22,16 @@ jobs:
         cache: true
     
     - name: Get dependencies
-      run: |
-        cd flutter
-        flutter pub get
+      working-directory: flutter
+      run: flutter pub get
       
-    - name: Analyze code
-      run: |
-        cd flutter
-        flutter analyze || true
-    
     - name: Build APK
-      run: |
-        cd flutter
-        flutter build apk --release --verbose
+      working-directory: flutter
+      run: flutter build apk --release
     
     - name: Build Web
-      run: |
-        cd flutter
-        flutter build web --release
+      working-directory: flutter
+      run: flutter build web --release
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
@@ -47,7 +39,6 @@ jobs:
         name: weight-tracker-flutter-android
         path: flutter/build/app/outputs/flutter-apk/app-release.apk
         retention-days: 30
-        if-no-files-found: warn
     
     - name: Upload Web
       uses: actions/upload-artifact@v4
@@ -55,4 +46,3 @@ jobs:
         name: weight-tracker-flutter-web
         path: flutter/build/web
         retention-days: 30
-        if-no-files-found: warn
