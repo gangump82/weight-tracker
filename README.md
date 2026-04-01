@@ -6,73 +6,68 @@
 
 ```
 weight-tracker/
+├── uni-app/            # uni-app 跨平台应用 ⭐ 推荐 (一套代码，iOS/Android/微信小程序)
 ├── index.html          # Web 应用 (在线可访问)
 ├── android/            # Android 原生应用 (Kotlin + Jetpack Compose)
 ├── ios/                # iOS 原生应用 (Swift + SwiftUI)
-├── flutter/            # Flutter 跨平台应用 ⭐ 推荐
-└── wardrobe-manager/   # 衣橱管家应用 🆕
+└── flutter/            # Flutter 跨平台应用
 ```
 
 ---
 
-## 🆕 衣橱管家 (Wardrobe Manager)
+## 🆕 uni-app 版本 (推荐)
 
-**智能衣物管理与穿搭助手**
+**一套代码，同时生成 iOS、Android、微信小程序！**
 
-### 核心功能
+### 功能特性
 
-| 功能 | 描述 | 亮点 |
-|------|------|------|
-| 📸 **拍照录入** | 拍照即录入，AI 自动识别 | 10秒/件 |
-| 🏠 **衣柜扫描** | 拍摄整个衣柜，AI 自动分析 | 5分钟/50件 |
-| 🤖 **AI 搭配** | 语音描述需求，生成搭配方案 | 解放双手 |
-| 📍 **位置管理** | 标记衣服位置，快速查找 | 不再翻箱倒柜 |
+| 功能 | 描述 |
+|------|------|
+| ⚖️ **体重记录** | 每日体重记录、打卡系统、体重趋势统计 |
+| 🏃 **运动记录** | 8种运动类型、自动计算消耗热量 |
+| 🥗 **饮食记录** | 四餐记录、热量统计 |
+| 👨‍⚕️ **营养师** | 一周食谱自动生成 |
+| 📊 **统计** | 综合统计、体重进度、热量平衡 |
 
 ### 快速开始
 
 ```bash
-cd wardrobe-manager
-flutter pub get
-flutter run
+cd uni-app
+npm install
 ```
 
-详细文档见 [wardrobe-manager/PRODUCT.md](wardrobe-manager/PRODUCT.md)
-
----
-
-## 🦋 Flutter 减肥记录
-
-**一套代码，同时生成 Android、iOS、Web 三端应用！**
-
-### 快速开始
+### 构建命令
 
 ```bash
-cd flutter
-flutter pub get
-flutter run -d chrome    # Web
-flutter build apk        # Android
+# H5 网页版
+npm run dev:h5      # 开发模式
+npm run build:h5    # 生产构建
+
+# 微信小程序
+npm run dev:mp-weixin    # 开发模式
+npm run build:mp-weixin  # 生产构建
+
+# 其他平台
+npm run dev:mp-alipay    # 支付宝小程序
+npm run dev:mp-baidu     # 百度小程序
+npm run dev:mp-toutiao   # 抖音小程序
 ```
 
----
+### 微信小程序测试
 
-## 功能特性
+1. 构建完成后，打开**微信开发者工具**
+2. 导入项目目录: `uni-app/dist/build/mp-weixin`
+3. 填写 AppID（测试可使用测试号）
+4. 即可在模拟器中预览和调试
 
-### ⚖️ 体重记录
-- 每日体重记录
-- 打卡系统和连续天数统计
-- 体重趋势图表
+### iOS/Android 应用打包
 
-### 🏃 运动记录
-- 8 种运动类型
-- 自动计算消耗热量
+uni-app 打包原生应用需要使用 HBuilderX:
 
-### 🥗 饮食记录
-- 四餐记录
-- 热量统计
-
-### 👨‍⚕️ 营养师功能
-- 12 种人群类型
-- 一周食谱自动生成
+1. 下载 [HBuilderX](https://www.dcloud.io/hbuilderx.html)
+2. 导入 `uni-app` 目录
+3. 点击 **发行** → **原生App-云打包**
+4. 选择平台（iOS/Android）进行打包
 
 ---
 
@@ -82,13 +77,13 @@ Web 版本: https://gangump82.github.io/weight-tracker/
 
 ## 技术栈
 
-| 项目 | 框架 | 语言 |
-|------|------|------|
-| **减肥记录 Flutter** | Flutter 3.16+ | Dart |
-| **衣橱管家** | Flutter 3.16+ | Dart |
-| Web | HTML5 + TailwindCSS | JavaScript |
-| Android 原生 | Jetpack Compose | Kotlin |
-| iOS 原生 | SwiftUI | Swift |
+| 项目 | 框架 | 语言 | 支持平台 |
+|------|------|------|---------|
+| **uni-app** ⭐ | uni-app + Vue 3 | TypeScript | iOS, Android, 微信小程序, H5 |
+| Flutter | Flutter 3.16+ | Dart | iOS, Android, Web |
+| Web | HTML5 + TailwindCSS | JavaScript | Web |
+| Android 原生 | Jetpack Compose | Kotlin | Android |
+| iOS 原生 | SwiftUI | Swift | iOS |
 
 ## License
 

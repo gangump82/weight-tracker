@@ -1,0 +1,68 @@
+{
+	"pages": [
+		{
+			"path": "pages/weight/weight",
+			"style": {
+				"navigationBarTitleText": "⚖️ 体重记录"
+			}
+		},
+		{
+			"path": "pages/exercise/exercise",
+			"style": {
+				"navigationBarTitleText": "🏃 运动记录"
+			}
+		},
+		{
+			"path": "pages/diet/diet",
+			"style": {
+				"navigationBarTitleText": "🥗 饮食记录"
+			}
+		},
+		{
+			"path": "pages/nutritionist/nutritionist",
+			"style": {
+				"navigationBarTitleText": "👨‍⚕️ 营养师"
+			}
+		},
+		{
+			"path": "pages/stats/stats",
+			"style": {
+				"navigationBarTitleText": "📊 统计"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "减肥记录",
+		"navigationBarBackgroundColor": "#8B5CF6",
+		"backgroundColor": "#F5F5F5"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#8B5CF6",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/weight/weight",
+				"text": "体重"
+			},
+			{
+				"pagePath": "pages/exercise/exercise",
+				"text": "运动"
+			},
+			{
+				"pagePath": "pages/diet/diet",
+				"text": "饮食"
+			},
+			{
+				"pagePath": "pages/nutritionist/nutritionist",
+				"text": "营养师"
+			},
+			{
+				"pagePath": "pages/stats/stats",
+				"text": "统计"
+			}
+		]
+	}
+}
